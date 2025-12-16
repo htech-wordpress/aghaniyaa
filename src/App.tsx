@@ -14,6 +14,7 @@ import { AdminLogin } from '@/pages/AdminLogin';
 import { AdminDashboard } from '@/pages/AdminDashboard';
 
 function App() {
+  // chnages
   // Get base path from environment variable (for GitHub Pages deployment)
   const basePath = import.meta.env.VITE_BASE_PATH || '/';
   
