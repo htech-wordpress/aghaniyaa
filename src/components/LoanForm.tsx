@@ -5,13 +5,16 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { saveLead } from '@/lib/storage';
+import type { LeadCategory } from '@/lib/storage';
 
 interface LoanFormProps {
   loanType: string;
   description?: string;
+  category: LeadCategory;
 }
 
-export function LoanForm({ loanType, description }: LoanFormProps) {
+export function LoanForm({ loanType, description, category }: LoanFormProps) {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -26,7 +29,15 @@ export function LoanForm({ loanType, description }: LoanFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Save lead to localStorage
+    saveLead(category, {
+      ...formData,
+      loanType,
+    });
+    
     alert(`Thank you for your interest in ${loanType}. Our team will contact you soon!`);
+    
     // Reset form
     setFormData({
       fullName: '',

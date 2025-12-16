@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Menu, X, Calculator } from 'lucide-react';
+import { Menu, X, Calculator, FileSearch } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -30,9 +30,18 @@ export function Header() {
             <Link to="/contact" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
               Contact Us
             </Link>
+            <Link to="/cibil-check" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
+              Check CIBIL
+            </Link>
           </nav>
 
           <div className="flex items-center space-x-4">
+            <Link to="/cibil-check">
+              <Button variant="outline" size="sm" className="hidden md:flex items-center gap-2">
+                <FileSearch className="h-4 w-4" />
+                Check CIBIL
+              </Button>
+            </Link>
             <Link to="/emi-calculator">
               <Button variant="outline" size="sm" className="hidden md:flex items-center gap-2">
                 <Calculator className="h-4 w-4" />
@@ -86,6 +95,23 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Contact Us
+            </Link>
+            <Link
+              to="/cibil-check"
+              className="block text-sm font-medium text-gray-700 hover:text-primary"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Check CIBIL
+            </Link>
+            <Link
+              to="/cibil-check"
+              className="block"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Button variant="outline" size="sm" className="w-full items-center gap-2">
+                <FileSearch className="h-4 w-4" />
+                Check CIBIL
+              </Button>
             </Link>
             <Link
               to="/emi-calculator"

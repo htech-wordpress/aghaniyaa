@@ -57,6 +57,6 @@ export function LoanDetail() {
     );
   }
 
-  return <LoanForm loanType={loan.title} description={loan.description} />;
+  return <LoanForm loanType={loan.title} description={loan.description} category={loanType as any} />;
 }
 

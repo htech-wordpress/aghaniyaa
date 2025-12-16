@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreditCard, TrendingUp, Gift, Shield, Zap } from 'lucide-react';
+import { saveLead } from '@/lib/storage';
 
 const creditCards = [
   {
@@ -50,6 +51,15 @@ export function CreditCards() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Save lead to localStorage
+    const selectedCardData = creditCards.find(card => card.id === selectedCard);
+    saveLead('credit-card', {
+      ...formData,
+      selectedCard: selectedCardData ? selectedCardData.name : null,
+      selectedCardIssuer: selectedCardData ? selectedCardData.issuer : null,
+    });
+    
     alert('Thank you for your interest! Our team will contact you soon with the best credit card offers.');
     setFormData({
       fullName: '',

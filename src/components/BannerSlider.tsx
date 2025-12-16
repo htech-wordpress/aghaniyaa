@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -9,6 +10,7 @@ const banners = [
     subtitle: 'Check Your Cibil Score & Report Instantly!',
     cta: 'Check Now',
     bgColor: 'bg-gradient-to-r from-blue-600 to-purple-600',
+    link: '/cibil-check',
   },
   {
     id: 2,
@@ -16,6 +18,7 @@ const banners = [
     subtitle: 'Best Interest Rates from Top Lenders',
     cta: 'Apply Now',
     bgColor: 'bg-gradient-to-r from-red-600 to-pink-600',
+    link: '/loans',
   },
   {
     id: 3,
@@ -23,6 +26,7 @@ const banners = [
     subtitle: 'Exclusive Rewards and Cashback Offers',
     cta: 'Explore Cards',
     bgColor: 'bg-gradient-to-r from-green-600 to-teal-600',
+    link: '/credit-cards',
   },
 ];
 
@@ -61,9 +65,11 @@ export function BannerSlider() {
             <div className="text-center text-white px-4">
               <h2 className="text-3xl md:text-5xl font-bold mb-4">{banner.title}</h2>
               <p className="text-xl md:text-2xl mb-8">{banner.subtitle}</p>
-              <Button size="lg" className="bg-white text-primary hover:bg-gray-100">
-                {banner.cta}
-              </Button>
+              <Link to={banner.link || '/'}>
+                <Button size="lg" className="bg-white text-primary hover:bg-gray-100">
+                  {banner.cta}
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

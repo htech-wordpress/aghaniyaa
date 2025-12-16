@@ -76,10 +76,15 @@ This project is configured to automatically deploy to GitHub Pages using GitHub 
 3. **Push to main branch**:
    - The workflow will automatically build and deploy your application
    - The deployment will be available at: `https://yourusername.github.io/repository-name/`
+   - **SPA Routing**: The workflow automatically generates a `404.html` file to support client-side routing
+   - All routes including admin routes (`/admin/login`, `/admin/dashboard`) will work correctly
 
 4. **Check deployment status**:
    - Go to the Actions tab in your GitHub repository
    - Monitor the "Deploy to GitHub Pages" workflow
+   - Verify that `404.html` is generated in the build artifacts
+
+**Note**: The `404.html` file is automatically generated during build to handle SPA routing on GitHub Pages. This ensures that direct URL access to any route (including admin routes) works correctly.
 
 ### Manual Deployment
 
@@ -123,6 +128,9 @@ src/
 - `/about` - About Us page
 - `/contact` - Contact Us page with form
 - `/emi-calculator` - EMI calculator tool
+- `/cibil-check` - CIBIL score checker
+- `/admin/login` - Admin login page
+- `/admin/dashboard` - Admin dashboard for managing leads
 
 ## Loan Types
 
@@ -155,6 +163,28 @@ The platform features partnerships with leading financial institutions including
 - ✅ Animated banner slider
 - ✅ Type-safe with TypeScript
 - ✅ Fast development with Vite
+- ✅ Admin panel for lead management
+- ✅ CIBIL score checker
+- ✅ Lead management system with categories
+- ✅ SPA routing support for GitHub Pages
+
+## Admin Panel
+
+The application includes a fully functional admin panel for managing leads:
+
+- **Login**: Navigate to `/admin/login` (default password: `admin123`)
+- **Dashboard**: View and manage all leads by category
+- **Features**:
+  - View leads by category (Home Loan, Personal Loan, Credit Cards, CIBIL Check, etc.)
+  - Export leads as JSON
+  - Delete individual leads
+  - Expand lead details
+  - Add dummy data for testing
+  - Real-time statistics
+
+### Admin Routes
+- `/admin/login` - Admin authentication
+- `/admin/dashboard` - Lead management dashboard
 
 ## License
 

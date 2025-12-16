@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Phone, Mail, MapPin, Clock, AlertCircle } from 'lucide-react';
+import { saveLead } from '@/lib/storage';
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -21,6 +22,10 @@ export function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Save contact form lead to localStorage
+    saveLead('contact', formData);
+    
     alert('Thank you for contacting us! We will get back to you soon.');
     setFormData({
       name: '',
