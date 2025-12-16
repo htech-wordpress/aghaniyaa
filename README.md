@@ -65,8 +65,14 @@ This project is configured to automatically deploy to GitHub Pages using GitHub 
 ### Setup Instructions
 
 1. **Enable GitHub Pages** in your repository settings:
-   - Go to Settings → Pages
-   - Source: Select "GitHub Actions"
+   - Go to your repository on GitHub
+   - Click on **Settings** tab
+   - Scroll down to **Pages** section in the left sidebar
+   - Under **Build and deployment**:
+     - **Source**: Select **"GitHub Actions"**
+   - Save the settings
+   
+   **Note**: The workflow includes `enablement: true` which should automatically enable Pages, but if you encounter the "Get Pages site failed" error, manually enable Pages in repository settings first.
 
 2. **Configure Base Path** (if needed):
    - If your repository name is `username.github.io`, the app will be served from the root
@@ -85,6 +91,27 @@ This project is configured to automatically deploy to GitHub Pages using GitHub 
    - Verify that `404.html` is generated in the build artifacts
 
 **Note**: The `404.html` file is automatically generated during build to handle SPA routing on GitHub Pages. This ensures that direct URL access to any route (including admin routes) works correctly.
+
+### Troubleshooting
+
+If you encounter the error: `"Get Pages site failed. Please verify that the repository has Pages enabled"`:
+
+1. **Manually enable GitHub Pages**:
+   - Go to your repository → Settings → Pages
+   - Under "Build and deployment", select "GitHub Actions" as the source
+   - Click Save
+
+2. **Check repository permissions**:
+   - Ensure the GitHub Actions has the necessary permissions
+   - The workflow requires `pages: write` and `id-token: write` permissions (already configured)
+
+3. **Verify workflow file**:
+   - Ensure `.github/workflows/deploy.yml` is committed to the repository
+   - The workflow should trigger on push to `main` branch
+
+4. **Run the workflow**:
+   - After enabling Pages, the workflow should run automatically on the next push
+   - Or manually trigger it from the Actions tab → "Deploy to GitHub Pages" → "Run workflow"
 
 ### Manual Deployment
 
