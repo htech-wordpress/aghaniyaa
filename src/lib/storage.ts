@@ -32,7 +32,7 @@ export function initAdminPassword() {
   }
 }
 
-// Admin authentication
+//  authentication
 export function checkAdminPassword(password: string): boolean {
   const storedPassword = localStorage.getItem(ADMIN_PASSWORD_KEY);
   return storedPassword === password;
@@ -43,7 +43,10 @@ export function setAdminPassword(password: string) {
 }
 
 export function isAdminAuthenticated(): boolean {
-  return sessionStorage.getItem('admin_authenticated') === 'true';
+  // legacy local session
+  if (sessionStorage.getItem('admin_authenticated') === 'true') return true;
+  // If Firebase is configured, rely on auth state instead (checked elsewhere)
+  return false;
 }
 
 export function setAdminAuthenticated(value: boolean) {
@@ -83,6 +86,15 @@ export function deleteLead(leadId: string): boolean {
   const filtered = leads.filter(lead => lead.id !== leadId);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
   return filtered.length < leads.length;
+}
+
+export function updateLead(updated: Lead): boolean {
+  const leads = getAllLeads();
+  const idx = leads.findIndex(l => l.id === updated.id);
+  if (idx === -1) return false;
+  leads[idx] = updated;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
+  return true;
 }
 
 export function clearAllLeads() {
@@ -257,4 +269,196 @@ export function seedDummyData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(allLeads));
   return dummyLeads.length;
 }
+
+// Export leads to CSV. If `leads` is not provided, exports all leads.
+export function exportLeadsToCSV(leads?: Lead[]): string {
+  const source = leads || getAllLeads();
+  if (source.length === 0) return '';
+
+  // Collect all keys from data fields
+  const dataKeys = new Set<string>();
+  source.forEach(l => Object.keys(l.data || {}).forEach(k => dataKeys.add(k)));
+  const headers = ['id', 'category', 'timestamp', ...Array.from(dataKeys)];
+
+  const escape = (val: any) => {
+    if (val === null || val === undefined) return '';
+    const s = String(val);
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+  };
+
+  const rows = source.map(l => {
+    const row: string[] = [];
+    row.push(escape(l.id));
+    row.push(escape(l.category));
+    row.push(escape(l.timestamp));
+    for (const k of dataKeys) {
+      row.push(escape(l.data?.[k] ?? ''));
+    }
+    return row.join(',');
+  });
+
+  return headers.join(',') + '\n' + rows.join('\n');
+}
+
+// Firestore-backed async helpers (fallback to localStorage when Firestore not configured)
+import * as firestoreLeads from './leads';
+
+export async function saveLeadAsync(category: LeadCategory, data: Record<string, any>): Promise<Lead> {
+  try {
+    return await firestoreLeads.saveLeadAsync(category, data);
+  } catch (e) {
+    // fallback to local
+    return Promise.resolve(saveLead(category, data));
+  }
+}
+
+export async function updateLeadAsync(updated: Lead): Promise<boolean> {
+  try {
+    return await firestoreLeads.updateLeadAsync(updated);
+  } catch (e) {
+    return Promise.resolve(updateLead(updated));
+  }
+}
+
+export async function deleteLeadAsync(leadId: string): Promise<boolean> {
+  try {
+    return await firestoreLeads.deleteLeadAsync(leadId);
+  } catch (e) {
+    return Promise.resolve(deleteLead(leadId));
+  }
+}
+
+export async function getAllLeadsAsync(): Promise<Lead[]> {
+  try {
+    return await firestoreLeads.getAllLeadsAsync();
+  } catch (e) {
+    return Promise.resolve(getAllLeads());
+  }
+}
+
+export async function getLeadsByCategoryAsync(category: LeadCategory): Promise<Lead[]> {
+  try {
+    return await firestoreLeads.getLeadsByCategoryAsync(category);
+  } catch (e) {
+    return Promise.resolve(getLeadsByCategory(category));
+  }
+}
+
+export function subscribeToLeads(callback: (leads: Lead[]) => void, category?: LeadCategory) {
+  try {
+    return firestoreLeads.subscribeToLeads(callback, category);
+  } catch (e) {
+    // Fallback: emit current local leads and return a no-op unsubscribe
+    callback(category ? getLeadsByCategory(category) : getAllLeads());
+    return () => {};
+  }
+}
+
+export async function migrateLocalLeadsToFirestore(): Promise<{ migrated: number; skipped: number }> {
+  try {
+    return await firestoreLeads.migrateLocalLeadsToFirestore();
+  } catch (e) {
+    return { migrated: 0, skipped: 0 };
+  }
+}
+// Import leads from CSV string. Returns number of leads imported.
+export function importLeadsFromCSV(csv: string): number {
+  if (!csv) return 0;
+
+  const lines = csv.split(/\r?\n/).filter(Boolean);
+  if (lines.length === 0) return 0;
+
+  const parseCSVLine = (line: string) => {
+    const result: string[] = [];
+    let cur = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"') {
+          if (line[i + 1] === '"') {
+            cur += '"';
+            i++;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          cur += ch;
+        }
+      } else {
+        if (ch === '"') {
+          inQuotes = true;
+        } else if (ch === ',') {
+          result.push(cur);
+          cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+    }
+    result.push(cur);
+    return result;
+  };
+
+  const header = parseCSVLine(lines[0]).map(h => h.trim());
+  const rows = lines.slice(1).map(parseCSVLine);
+
+  const imported: Lead[] = [];
+  const now = new Date().toISOString();
+  const validCategories = new Set<LeadCategory>([
+    'home-loan','personal-loan','business-loan','education-loan','car-loan','gold-loan','loan-against-property','credit-card','cibil-check','contact','careers'
+  ]);
+
+  for (const r of rows) {
+    if (r.every(c => c === '')) continue; // skip empty rows
+    const obj: Record<string, any> = {};
+    for (let i = 0; i < header.length; i++) {
+      obj[header[i]] = r[i] ?? '';
+    }
+
+    const categoryRaw = (obj['category'] || '').trim();
+    const category = validCategories.has(categoryRaw as LeadCategory) ? (categoryRaw as LeadCategory) : 'contact';
+    const id = obj['id'] && obj['id'].trim() ? obj['id'].trim() : `lead_${Date.now()}_${Math.random().toString(36).substr(2,9)}`;
+    const timestamp = obj['timestamp'] && obj['timestamp'].trim() ? obj['timestamp'].trim() : now;
+
+    // Remove standard fields from data object
+    const data: Record<string, any> = {};
+    for (const key of Object.keys(obj)) {
+      if (['id','category','timestamp'].includes(key)) continue;
+      data[key] = obj[key];
+    }
+
+    // Mark imported leads as Manual Entry by default if no source is provided
+    if (!data.source || String(data.source).trim() === '') {
+      data.source = 'Manual Entry';
+    }
+
+    imported.push({ id, category, timestamp, data });
+  }
+
+  if (imported.length === 0) return 0;
+  const existing = getAllLeads();
+  const merged = [...existing, ...imported];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+  return imported.length;
+}
+
+// Admin profile helpers
+const ADMIN_PROFILE_KEY = 'aghaniya_admin_profile';
+
+export function getAdminProfile(): { name?: string; email?: string } {
+  try {
+    const raw = localStorage.getItem(ADMIN_PROFILE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+export function setAdminProfile(profile: { name?: string; email?: string }) {
+  localStorage.setItem(ADMIN_PROFILE_KEY, JSON.stringify(profile));
+} 
 

@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "postbuild": "node scripts/generate-404.js",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed-super-admin": "node scripts/seed-super-admin.cjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -20,6 +21,8 @@
     "autoprefixer": "^10.4.23",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "firebase": "^12.7.0",
+    "firebase-admin": "^13.6.0",
     "framer-motion": "^12.23.26",
     "lucide-react": "^0.561.0",
     "postcss": "^8.5.6",

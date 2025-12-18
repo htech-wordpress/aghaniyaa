@@ -13,7 +13,17 @@ import { CibilCheck } from '@/pages/CibilCheck';
 import { OurTeam } from '@/pages/OurTeam';
 import { Careers } from '@/pages/Careers';
 import { AdminLogin } from '@/pages/AdminLogin';
-import { AdminDashboard } from '@/pages/AdminDashboard';
+
+import { AdminImportLeads } from '@/pages/AdminImportLeads';
+import { AdminExportLeads } from '@/pages/AdminExportLeads';
+import { AdminWebsiteLeads } from '@/pages/AdminWebsiteLeads';
+import { AdminManualLeads } from '@/pages/AdminManualLeads';
+import { AdminContacts } from '@/pages/AdminContacts';
+import { AdminCareers } from '@/pages/AdminCareers';
+import { AdminCibilCheck } from '@/pages/AdminCibilCheck';
+import { AdminOverview } from '@/pages/AdminOverview';
+import { AdminSettings } from '@/pages/AdminSettings';
+import { AdminSupport } from '@/pages/AdminSupport';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 
 function App() {
@@ -41,7 +51,89 @@ function App() {
               path="/admin/dashboard"
               element={
                 <ProtectedRoute>
-                  <AdminDashboard />
+                  <AdminOverview />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminOverview />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/leads"
+              element={
+                <ProtectedRoute>
+                  <AdminWebsiteLeads />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/leads/manual"
+              element={
+                <ProtectedRoute>
+                  <AdminManualLeads />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/leads/contacts"
+              element={
+                <ProtectedRoute>
+                  <AdminContacts />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/leads/careers"
+              element={
+                <ProtectedRoute>
+                  <AdminCareers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/leads/cibil"
+              element={
+                <ProtectedRoute>
+                  <AdminCibilCheck />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/leads/import"
+              element={
+                <ProtectedRoute>
+                  <AdminImportLeads />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/leads/export"
+              element={
+                <ProtectedRoute>
+                  <AdminExportLeads />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/settings"
+              element={
+                <ProtectedRoute>
+                  <AdminSettings />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/support"
+              element={
+                <ProtectedRoute>
+                  <AdminSupport />
                 </ProtectedRoute>
               }
             />

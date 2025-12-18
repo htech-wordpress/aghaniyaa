@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null && (
+        // Explicit admin by UID
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        // Or listed as superuser by email
+        || (get(/databases/$(database)/documents/adminConfig/superusers).data.emails != null && request.auth.token.email in get(/databases/$(database)/documents/adminConfig/superusers).data.emails)
+      );
+    }
+
+    // Leads collection: only admins can read/write
+    match /leads/{leadId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Admin config: only admins can read/write
+    match /adminConfig/superusers {
+      allow read, write: if isAdmin();
+    }
+
+    // Admins collection: allow admin to read their own doc and allow superusers to create/modify admins
+    match /admins/{adminId} {
+      allow read: if request.auth != null && (request.auth.uid == adminId || isAdmin());
+      allow write: if request.auth != null && (
+        // admin can update their own profile
+        request.auth.uid == adminId
+        // superusers can create/modify admins
+        || (get(/databases/$(database)/documents/adminConfig/superusers).exists() && request.auth.token.email in get(/databases/$(database)/documents/adminConfig/superusers).data.emails)
+      );
+    }
+
+    // Other public documents can be opened as needed
+  }
+}
