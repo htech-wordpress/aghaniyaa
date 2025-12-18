@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
 import { BannerSlider } from '@/components/BannerSlider';
+import { TeamPreview } from '@/components/TeamPreview';
+import { ScrollAnimation, ScrollParallax } from '@/components/ScrollAnimation';
+import { Card3D } from '@/components/Card3D';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Home as HomeIcon, Building2, Briefcase, GraduationCap, Car, CreditCard, Gem, Landmark } from 'lucide-react';
+import { Home as HomeIcon, Building2, Briefcase, GraduationCap, Car, CreditCard, Gem, Landmark, MapPin, Trophy, Users, Gift, BookOpen, CheckCircle, Calculator } from 'lucide-react';
 
 const loanTypes = [
   {
@@ -71,16 +74,59 @@ const stats = [
 ];
 
 const partners = [
-  'Bajaj Finserv',
-  'Edelweiss',
-  'Piramal Finance',
-  'RBL Bank',
-  'SMFG India Credit',
-  'ICICI Bank',
-  'HDFC Bank',
-  'Axis Bank',
-  'Kotak Bank',
-  'SBI',
+  { 
+    name: 'Axis Bank', 
+    logo: '/Assets/Axis Bank_idJBXQBHwi_1.png'
+  },
+  { 
+    name: 'Bajaj Finserv', 
+    logo: '/Assets/bajaj-loan-finance--aghaniyaenterprises.jpeg'
+  },
+  { 
+    name: 'HDFC Bank', 
+    logo: '/Assets/HDFC Bank_id6pGb_xHe_1.png'
+  },
+  { 
+    name: 'SBI', 
+    logo: '/Assets/State Bank of India_id95r1JSPJ_2.png'
+  },
+  { 
+    name: 'Piramal Finance', 
+    logo: '/Assets/Piramal Finance_idrE5R2BaP_0.png'
+  },
+  { 
+    name: 'RBL Bank', 
+    logo: '/Assets/rbl--aghaniyaenterprises.png'
+  },
+  { 
+    name: 'ICICI Bank', 
+    logo: '/Assets/ICICI Bank_id_NFCjbgj_1.png'
+  },
+  { 
+    name: 'Kotak Bank', 
+    logo: '/Assets/Kotak Mahindra Bank_idVNFKKm-u_0.svg'
+  },
+  { 
+    name: 'Edelweiss', 
+    logo: '/Assets/placeholder-img.svg'
+  },
+  { 
+    name: 'SMFG India Credit', 
+    logo: '/Assets/placeholder-img.svg'
+  },
+];
+
+const advantages = [
+  { title: "India's Leading Loans Distributor", icon: Trophy, image: 'https://images.unsplash.com/photo-1553484771-371a605b060b?w=300&h=300&fit=crop' },
+  { title: "Pan India Presence", icon: MapPin, image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=300&h=300&fit=crop' },
+  { title: "25 Years Of Legacy", icon: Trophy, image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=300&h=300&fit=crop' },
+  { title: "Be Your Own Boss", icon: Users, image: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=300&h=300&fit=crop' },
+  { title: "Multiple Products", icon: Gift, image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=300&h=300&fit=crop' },
+  { title: "Refer and Earn", icon: Gift, image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=300&h=300&fit=crop' },
+  { title: "Training Programs", icon: BookOpen, image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=300&h=300&fit=crop' },
+  { title: "Easy Onboarding Process", icon: CheckCircle, image: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=300&h=300&fit=crop' },
+  { title: "Check Free CIBIL Score", icon: CheckCircle, image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=300&h=300&fit=crop' },
+  { title: "EMI Calculator", icon: Calculator, image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=300&h=300&fit=crop' },
 ];
 
 export function Home() {
@@ -93,31 +139,37 @@ export function Home() {
 
       {/* We Facilitate Section */}
       <section className="container mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">We Facilitate</h2>
-          <p className="text-xl text-gray-600">
-            Wide Range of Financial Products That suits your customer's needs!
-          </p>
-        </div>
+        <ScrollAnimation direction="fade" delay={0.2}>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-white mb-4">We Facilitate</h2>
+            <p className="text-xl text-gray-600">
+              Wide Range of Financial Products That suits your customer's needs!
+            </p>
+          </div>
+        </ScrollAnimation>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {loanTypes.map((loan) => {
+          {loanTypes.map((loan, index) => {
             const Icon = loan.icon;
             return (
-              <Card key={loan.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <Icon className="h-12 w-12 text-primary mb-4" />
-                  <CardTitle className="text-xl">{loan.title}</CardTitle>
-                  <CardDescription>{loan.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Link to={loan.link}>
-                    <Button variant="outline" className="w-full text-primary border-primary hover:bg-primary hover:text-white">
-                      Check Eligibility →
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+              <ScrollAnimation key={loan.id} direction="up" delay={index * 0.1} duration={0.5}>
+                <Card3D intensity={10}>
+                  <Card className="hover:shadow-lg transition-shadow h-full">
+                    <CardHeader>
+                      <Icon className="h-12 w-12 text-primary mb-4" />
+                      <CardTitle className="text-xl">{loan.title}</CardTitle>
+                      <CardDescription>{loan.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Link to={loan.link}>
+                        <Button variant="outline" className="w-full text-primary border-primary hover:bg-primary hover:text-white">
+                          Check Eligibility →
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                </Card3D>
+              </ScrollAnimation>
             );
           })}
         </div>
@@ -126,18 +178,24 @@ export function Home() {
       {/* Statistics Section */}
       <section className="bg-gray-50 py-16">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              AGHANIYA – India's Leading Loan Distribution Company
-            </h2>
-          </div>
+          <ScrollAnimation direction="scale" delay={0.2}>
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-black mb-4">
+                AGHANIYA – India's Leading Loan Distribution Company
+              </h2>
+            </div>
+          </ScrollAnimation>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-5xl font-bold text-primary mb-2">{stat.value}</div>
-                <div className="text-lg text-gray-600">{stat.label}</div>
-              </div>
+              <ScrollAnimation key={index} direction="up" delay={index * 0.15} duration={0.6}>
+                <ScrollParallax speed={0.3}>
+                  <div className="text-center">
+                    <div className="text-5xl font-bold text-primary mb-2">{stat.value}</div>
+                    <div className="text-lg text-gray-600">{stat.label}</div>
+                  </div>
+                </ScrollParallax>
+              </ScrollAnimation>
             ))}
           </div>
 
@@ -154,22 +212,51 @@ export function Home() {
 
       {/* Bank Partners Section */}
       <section className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Get Loans from India's Top-Tier Lenders
-          </h2>
-          <p className="text-lg text-gray-600">
-            Trusted by leading financial institutions across India
-          </p>
-        </div>
+        <ScrollAnimation direction="fade" delay={0.2}>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Get Loans from India's Top-Tier Lenders
+            </h2>
+            <p className="text-lg text-gray-600">
+              Trusted by leading financial institutions across India
+            </p>
+          </div>
+        </ScrollAnimation>
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
           {partners.map((partner, index) => (
-            <Card key={index} className="p-6 text-center hover:shadow-md transition-shadow">
-              <CardContent className="flex items-center justify-center h-20">
-                <span className="text-lg font-semibold text-gray-700">{partner}</span>
-              </CardContent>
-            </Card>
+            <ScrollAnimation key={index} direction="scale" delay={index * 0.1} duration={0.5}>
+              <Card3D intensity={8}>
+                <Card className="p-4 text-center hover:shadow-md transition-shadow bg-white">
+                  <CardContent className="flex items-center justify-center h-24 p-2">
+                    <img
+                      src={partner.logo}
+                      alt={partner.name}
+                      className="max-h-16 max-w-full object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                      loading="lazy"
+                      crossOrigin="anonymous"
+                      onError={(e) => {
+                        // Fallback to placeholder if image fails
+                        const target = e.target as HTMLImageElement;
+                        if (!target.src.includes('placeholder-img.svg')) {
+                          target.src = '/Assets/placeholder-img.svg';
+                          return;
+                        }
+                        // Fallback to text if placeholder also fails
+                        const parent = target.parentElement;
+                        if (parent && !parent.querySelector('.fallback-text')) {
+                          target.style.display = 'none';
+                          const span = document.createElement('span');
+                          span.className = 'fallback-text text-xs font-semibold text-gray-700 px-2';
+                          span.textContent = partner.name;
+                          parent.appendChild(span);
+                        }
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              </Card3D>
+            </ScrollAnimation>
           ))}
         </div>
       </section>
@@ -177,32 +264,54 @@ export function Home() {
       {/* Advantages Section */}
       <section className="bg-gray-50 py-16">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Advantages of AGHANIYA</h2>
-          </div>
+          <ScrollAnimation direction="fade" delay={0.2}>
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-black mb-4">Advantages of AGHANIYA</h2>
+            </div>
+          </ScrollAnimation>
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {[
-              "India's Leading Loans Distributor",
-              "Pan India Presence",
-              "25 Years Of Legacy",
-              "Be Your Own Boss",
-              "Multiple Products",
-              "Refer and Earn",
-              "Training Programs",
-              "Easy Onboarding Process",
-              "Check Free CIBIL Score",
-              "EMI Calculator",
-            ].map((advantage, index) => (
-              <Card key={index} className="p-6 text-center hover:shadow-md transition-shadow">
-                <CardContent>
-                  <p className="text-sm font-medium text-gray-700">{advantage}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {advantages.map((advantage, index) => {
+              const Icon = advantage.icon;
+              return (
+                <ScrollAnimation key={index} direction="rotate3d" delay={index * 0.08} duration={0.6}>
+                  <Card3D intensity={12}>
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow group h-full">
+                      <div className="relative h-32 w-full overflow-hidden">
+                        <img
+                          src={advantage.image}
+                          alt={advantage.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          onError={(e) => {
+                            // Fallback to icon if image fails
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent && !parent.querySelector('.icon-fallback')) {
+                              const iconDiv = document.createElement('div');
+                              iconDiv.className = 'icon-fallback flex items-center justify-center h-full bg-primary/10';
+                              parent.appendChild(iconDiv);
+                            }
+                          }}
+                        />
+                      </div>
+                      <CardContent className="p-4 text-center">
+                        <Icon className="h-6 w-6 text-primary mx-auto mb-2" />
+                        <p className="text-sm font-medium text-gray-700">{advantage.title}</p>
+                      </CardContent>
+                    </Card>
+                  </Card3D>
+                </ScrollAnimation>
+              );
+            })}
           </div>
         </div>
       </section>
+
+      {/* Our Team Preview Section */}
+      <ScrollAnimation direction="fade" delay={0.3}>
+        <TeamPreview />
+      </ScrollAnimation>
     </div>
   );
 }

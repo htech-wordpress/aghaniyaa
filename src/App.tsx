@@ -10,13 +10,16 @@ import { LoanDetail } from '@/pages/LoanDetail';
 import { CreditCards } from '@/pages/CreditCards';
 import { EMICalculator } from '@/pages/EMICalculator';
 import { CibilCheck } from '@/pages/CibilCheck';
+import { OurTeam } from '@/pages/OurTeam';
+import { Careers } from '@/pages/Careers';
 import { AdminLogin } from '@/pages/AdminLogin';
 import { AdminDashboard } from '@/pages/AdminDashboard';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 
 function App() {
   // Get base path from environment variable (for GitHub Pages deployment)
   const basePath = import.meta.env.VITE_BASE_PATH || '/';
-  
+
   return (
     <BrowserRouter basename={basePath}>
       <div className="flex flex-col min-h-screen">
@@ -31,6 +34,8 @@ function App() {
             <Route path="/credit-cards" element={<CreditCards />} />
             <Route path="/emi-calculator" element={<EMICalculator />} />
             <Route path="/cibil-check" element={<CibilCheck />} />
+            <Route path="/our-team" element={<OurTeam />} />
+            <Route path="/careers" element={<Careers />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route
               path="/admin/dashboard"
@@ -43,6 +48,7 @@ function App() {
           </Routes>
         </main>
         <Footer />
+        <WhatsAppButton />
       </div>
     </BrowserRouter>
   );

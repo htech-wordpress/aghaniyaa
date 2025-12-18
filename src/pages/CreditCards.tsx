@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollAnimation } from '@/components/ScrollAnimation';
+import { Card3D } from '@/components/Card3D';
 import { CreditCard, TrendingUp, Gift, Shield, Zap } from 'lucide-react';
 import { saveLead } from '@/lib/storage';
 
@@ -86,24 +88,25 @@ export function CreditCards() {
     <div className="min-h-screen">
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Credit Cards</h1>
-          <p className="text-xl text-gray-600">
+          <h1 className="text-4xl font-bold text-white mb-4">Credit Cards</h1>
+          <p className="text-xl text-gray-100">
             Upgrade your lifestyle with feature-packed, rewarding credit cards
           </p>
         </div>
 
         {/* Credit Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          {creditCards.map((card) => {
+          {creditCards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <Card
-                key={card.id}
-                className={`hover:shadow-lg transition-shadow cursor-pointer ${
-                  selectedCard === card.id ? 'ring-2 ring-primary' : ''
-                }`}
-                onClick={() => setSelectedCard(card.id)}
-              >
+              <ScrollAnimation key={card.id} direction="up" delay={index * 0.15} duration={0.6}>
+                <Card3D intensity={12}>
+                  <Card
+                    className={`hover:shadow-lg transition-shadow cursor-pointer h-full ${
+                      selectedCard === card.id ? 'ring-2 ring-primary' : ''
+                    }`}
+                    onClick={() => setSelectedCard(card.id)}
+                  >
                 <CardHeader>
                   <div className="flex items-center justify-between mb-4">
                     <Icon className="h-12 w-12 text-primary" />
@@ -132,13 +135,16 @@ export function CreditCards() {
                     {selectedCard === card.id ? 'Selected' : 'Select Card'}
                   </Button>
                 </CardContent>
-              </Card>
+                  </Card>
+                </Card3D>
+              </ScrollAnimation>
             );
           })}
         </div>
 
         {/* Application Form */}
-        <Card>
+        <ScrollAnimation direction="fade" delay={0.3}>
+          <Card>
           <CardHeader>
             <CardTitle>Apply for Credit Card</CardTitle>
             <CardDescription>
@@ -251,7 +257,8 @@ export function CreditCards() {
               </Button>
             </form>
           </CardContent>
-        </Card>
+          </Card>
+        </ScrollAnimation>
       </div>
     </div>
   );

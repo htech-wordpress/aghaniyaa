@@ -33,3 +33,4 @@ fs.writeFileSync(file404Path, content404, 'utf-8');
 console.log('✓ Generated 404.html for SPA routing');
 console.log(`  Base path: ${basePath}`);
 
+

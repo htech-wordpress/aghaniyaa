@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { ScrollAnimation } from '@/components/ScrollAnimation';
 import { Phone, Mail, MapPin, Clock, AlertCircle } from 'lucide-react';
 import { saveLead } from '@/lib/storage';
 
@@ -62,13 +63,16 @@ export function Contact() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact AGHANIYA</h1>
-          <p className="text-lg text-gray-600">Get in touch with us for any queries or assistance</p>
-        </div>
+        <ScrollAnimation direction="fade" delay={0.2}>
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact AGHANIYA</h1>
+            <p className="text-lg text-gray-600">Get in touch with us for any queries or assistance</p>
+          </div>
+        </ScrollAnimation>
 
         {/* Important Note */}
-        <Card className="mb-8 border-yellow-400 bg-yellow-50">
+        <ScrollAnimation direction="down" delay={0.3}>
+          <Card className="mb-8 border-yellow-400 bg-yellow-50">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
@@ -81,12 +85,14 @@ export function Contact() {
               </div>
             </div>
           </CardContent>
-        </Card>
+          </Card>
+        </ScrollAnimation>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact Form */}
-          <div className="lg:col-span-2">
-            <Card>
+          <ScrollAnimation direction="right" delay={0.4} duration={0.6}>
+            <div className="lg:col-span-2">
+              <Card>
               <CardHeader>
                 <CardTitle>Send us a Message</CardTitle>
                 <CardDescription>
@@ -221,11 +227,13 @@ export function Contact() {
                   </Button>
                 </form>
               </CardContent>
-            </Card>
-          </div>
+              </Card>
+            </div>
+          </ScrollAnimation>
 
           {/* Contact Information */}
-          <div className="space-y-6">
+          <ScrollAnimation direction="left" delay={0.5} duration={0.6}>
+            <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Contact Information</CardTitle>
@@ -275,8 +283,9 @@ export function Contact() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          </div>
+              </Card>
+            </div>
+          </ScrollAnimation>
         </div>
       </div>
     </div>

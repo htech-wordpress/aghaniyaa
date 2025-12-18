@@ -1,32 +1,39 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 
 const banners = [
   {
     id: 1,
-    title: 'FREE CIBIL SCORE CHECK IS NOW LIVE',
-    subtitle: 'Check Your Cibil Score & Report Instantly!',
-    cta: 'Check Now',
-    bgColor: 'bg-gradient-to-r from-blue-600 to-purple-600',
-    link: '/cibil-check',
+    title: 'Blue Ocean',
+    subtitle: 'Professional and calm',
+    ctaPrimary: 'Get Started',
+    ctaSecondary: 'Learn More',
+    bgColor: 'bg-gradient-to-b from-[#c7ced2] via-[#2ea0d8] to-[#174f70] text-white',
+    linkPrimary: '/loans',
+    linkSecondary: '/about',
   },
   {
     id: 2,
     title: 'Get Instant Loan Approval',
     subtitle: 'Best Interest Rates from Top Lenders',
-    cta: 'Apply Now',
-    bgColor: 'bg-gradient-to-r from-red-600 to-pink-600',
-    link: '/loans',
+    ctaPrimary: 'Apply Now',
+    ctaSecondary: 'How It Works',
+    bgColor: 'bg-gradient-to-r from-red-600 to-pink-600 text-white',
+    linkPrimary: '/loans',
+    linkSecondary: '/about',
   },
   {
     id: 3,
     title: 'Credit Cards for Every Lifestyle',
     subtitle: 'Exclusive Rewards and Cashback Offers',
-    cta: 'Explore Cards',
-    bgColor: 'bg-gradient-to-r from-green-600 to-teal-600',
-    link: '/credit-cards',
+    ctaPrimary: 'Explore Cards',
+    ctaSecondary: 'Compare',
+    bgColor: 'bg-gradient-to-r from-green-600 to-teal-600 text-white',
+    linkPrimary: '/credit-cards',
+    linkSecondary: '/credit-cards',
   },
 ];
 
@@ -39,6 +46,23 @@ export function BannerSlider() {
     }, 5000);
     return () => clearInterval(timer);
   }, []);
+
+  const slideVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        when: 'beforeChildren',
+        staggerChildren: 0.12,
+        delayChildren: 0.08,
+      },
+    },
+  };
+
+  const childVariants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+  };
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
@@ -62,15 +86,20 @@ export function BannerSlider() {
           }`}
         >
           <div className={`${banner.bgColor} h-full flex items-center justify-center`}>
-            <div className="text-center text-white px-4">
-              <h2 className="text-3xl md:text-5xl font-bold mb-4">{banner.title}</h2>
-              <p className="text-xl md:text-2xl mb-8">{banner.subtitle}</p>
-              <Link to={banner.link || '/'}>
-                <Button size="lg" className="bg-white text-primary hover:bg-gray-100">
-                  {banner.cta}
-                </Button>
-              </Link>
-            </div>
+            <motion.div className="text-center px-4" initial="hidden" animate={index === currentIndex ? 'visible' : 'hidden'} variants={slideVariants}>
+              <motion.div variants={childVariants} className="max-w-3xl mx-auto rounded-2xl py-16 md:py-20 px-6 md:px-12 shadow-2xl bg-black/10 backdrop-blur-sm">
+                <motion.h2 variants={childVariants} className="text-5xl md:text-7xl font-extrabold mb-4 text-white tracking-tight leading-tight">{banner.title}</motion.h2>
+                <motion.p variants={childVariants} className="text-lg md:text-2xl mb-8 text-white/90">{banner.subtitle}</motion.p>
+                <motion.div variants={childVariants} className="flex items-center justify-center">
+                  <Link to={banner.linkPrimary || '/'}>
+                    <Button variant="pill" size="lg">{banner.ctaPrimary}</Button>
+                  </Link>
+                  <Link to={banner.linkSecondary || '/'}>
+                    <Button variant="pill-outline" size="lg" className="ml-4">{banner.ctaSecondary}</Button>
+                  </Link>
+                </motion.div>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       ))}

@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ScrollAnimation } from '@/components/ScrollAnimation';
+import { Card3D } from '@/components/Card3D';
 import { Home as HomeIcon, Building2, Briefcase, GraduationCap, Car, Gem, Landmark } from 'lucide-react';
 
 const loans = [
@@ -59,37 +61,43 @@ export function Loans() {
   return (
     <div className="min-h-screen">
       <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Loans</h1>
-          <p className="text-xl text-gray-600">
-            Choose from a wide range of loan products to suit your needs
-          </p>
-        </div>
+        <ScrollAnimation direction="fade" delay={0.2}>
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-white mb-4">Loans</h1>
+            <p className="text-xl text-gray-100">
+              Choose from a wide range of loan products to suit your needs
+            </p>
+          </div>
+        </ScrollAnimation>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loans.map((loan) => {
+          {loans.map((loan, index) => {
             const Icon = loan.icon;
             return (
-              <Card key={loan.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <Icon className="h-12 w-12 text-primary mb-4" />
-                  <CardTitle className="text-2xl">{loan.title}</CardTitle>
-                  <CardDescription>{loan.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 mb-6">
-                    {loan.features.map((feature, index) => (
-                      <li key={index} className="flex items-center text-sm text-gray-600">
-                        <span className="text-primary mr-2">✓</span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link to={`/loans/${loan.id}`}>
-                    <Button className="w-full">Apply Now</Button>
-                  </Link>
-                </CardContent>
-              </Card>
+              <ScrollAnimation key={loan.id} direction="rotate3d" delay={index * 0.1} duration={0.6}>
+                <Card3D intensity={12}>
+                  <Card className="hover:shadow-lg transition-shadow h-full">
+                    <CardHeader>
+                      <Icon className="h-12 w-12 text-primary mb-4" />
+                      <CardTitle className="text-2xl">{loan.title}</CardTitle>
+                      <CardDescription>{loan.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2 mb-6">
+                        {loan.features.map((feature, index) => (
+                          <li key={index} className="flex items-center text-sm text-gray-600">
+                            <span className="text-primary mr-2">✓</span>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                      <Link to={`/loans/${loan.id}`}>
+                        <Button className="w-full">Apply Now</Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                </Card3D>
+              </ScrollAnimation>
             );
           })}
         </div>

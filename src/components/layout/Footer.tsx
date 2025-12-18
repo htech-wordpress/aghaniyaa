@@ -6,11 +6,16 @@ export function Footer() {
     <footer className="bg-gray-900 text-gray-300">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <h3 className="text-xl font-bold text-white mb-4">AGHANIYA</h3>
-            <p className="text-sm">
-              India's Leading Loan Distribution Company. Connecting customers with the best financial products.
-            </p>
+          <div className="flex items-start gap-4">
+            <Link to="/" className="flex-shrink-0">
+              <img src="/Aghaniya logo.svg" alt="AGHANIYA Logo" className="h-12 w-auto" />
+            </Link>
+            <div>
+              <h3 className="text-xl font-bold text-white mb-1">AGHANIYA</h3>
+              <p className="text-sm">
+                India's Leading Loan Distribution Company. Connecting customers with the best financial products.
+              </p>
+            </div>
           </div>
 
           <div>
@@ -18,6 +23,9 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/about" className="hover:text-white transition-colors">About Us</Link>
+              </li>
+              <li>
+                <Link to="/our-team" className="hover:text-white transition-colors">Our Team</Link>
               </li>
               <li>
                 <Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link>

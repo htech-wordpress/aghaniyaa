@@ -37,7 +37,8 @@ const categoryLabels: Record<LeadCategory, { label: string; icon: any }> = {
   'loan-against-property': { label: 'Loan against Property', icon: Landmark },
   'credit-card': { label: 'Credit Cards', icon: CreditCard },
   'cibil-check': { label: 'CIBIL Check', icon: FileSearch },
-  'contact': { label: 'Contact Form', icon: Mail },
+  contact: { label: 'Contact Form', icon: Mail },
+  careers: { label: 'Careers', icon: Briefcase },
 };
 
 export function AdminDashboard() {

@@ -9,7 +9,8 @@ export type LeadCategory =
   | 'loan-against-property'
   | 'credit-card'
   | 'cibil-check'
-  | 'contact';
+  | 'contact'
+  | 'careers';
 
 export interface Lead {
   id: string;

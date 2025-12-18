@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { ScrollAnimation } from '@/components/ScrollAnimation';
 import { FileSearch, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import { saveLead } from '@/lib/storage';
 
@@ -60,16 +61,19 @@ export function CibilCheck() {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Check Your CIBIL Score</h1>
-            <p className="text-lg text-gray-600">
-              Get instant access to your CIBIL score and credit report
-            </p>
-          </div>
+          <ScrollAnimation direction="scale" delay={0.2}>
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">Check Your CIBIL Score</h1>
+              <p className="text-lg text-gray-600">
+                Get instant access to your CIBIL score and credit report
+              </p>
+            </div>
+          </ScrollAnimation>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Form */}
-            <Card>
+            <ScrollAnimation direction="right" delay={0.3} duration={0.6}>
+              <Card>
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
                   <FileSearch className="h-8 w-8 text-primary" />
@@ -227,11 +231,12 @@ export function CibilCheck() {
                   </div>
                 )}
               </CardContent>
-            </Card>
-          </div>
+              </Card>
+            </ScrollAnimation>
 
-          {/* Info Section */}
-          <Card className="mt-8">
+            {/* Info Section */}
+            <ScrollAnimation direction="left" delay={0.4} duration={0.6}>
+              <Card className="mt-8">
             <CardContent className="pt-6">
               <h3 className="font-semibold text-lg mb-4">Why Check Your CIBIL Score?</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -258,7 +263,9 @@ export function CibilCheck() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+              </Card>
+            </ScrollAnimation>
+          </div>
         </div>
       </div>
     </div>
