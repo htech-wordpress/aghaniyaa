@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { isAdminAuthenticated, setAdminAuthenticated, subscribeToLeads } from '@/lib/storage';
-import { onAuthChange, isSuperUser } from '@/lib/firebase';
 import { Home, Database, Mail, Briefcase, FileSearch, Settings, HelpCircle, LogOut } from 'lucide-react';
 
 import type { LeadCategory } from '@/lib/storage';
@@ -14,36 +13,6 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
   const [counts, setCounts] = useState<Record<LeadCategory, number>>({} as Record<LeadCategory, number>);
   const [total, setTotal] = useState<number>(0);
   const [manualCount, setManualCount] = useState<number>(0);
-  const [isSuper, setIsSuper] = useState<boolean>(false);
-
-  const [firestoreBlocked, setFirestoreBlocked] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Track auth changes so we can show/hide superuser-only UI
-    const unsub = onAuthChange(async (u) => {
-      const ok = await isSuperUser(u || null);
-      setIsSuper(ok);
-    });
-
-    // Initialize immediately with current user if available
-    (async () => {
-      const auth = (await import('firebase/auth')).getAuth();
-      const ok = await isSuperUser(auth?.currentUser || null);
-      setIsSuper(ok);
-
-      // Probe Firestore network connectivity and detect client-side blocking
-      try {
-        const probe = await (await import('@/lib/firebase')).checkFirestoreNetwork();
-        if (!probe.ok) {
-          setFirestoreBlocked(probe.message || 'Firestore network blocked');
-        }
-      } catch (e) {
-        // ignore probe errors silently
-      }
-    })();
-
-    return unsub;
-  }, []);
 
   useEffect(() => {
     if (!isAdminAuthenticated()) {
@@ -67,25 +36,6 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {firestoreBlocked && (
-        <div className="mb-4">
-          <div className="rounded-md bg-yellow-50 p-4 border border-yellow-200">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-yellow-700" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11V5a1 1 0 10-2 0v2a1 1 0 002 0zm0 6a1 1 0 10-2 0 1 1 0 002 0z" clipRule="evenodd" /></svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-yellow-800">{firestoreBlocked}</p>
-                <p className="mt-1 text-xs text-yellow-700">Disable ad-blockers / privacy extensions for <code>firestore.googleapis.com</code> or use the Firebase Emulator for local development.</p>
-              </div>
-              <div className="ml-auto pl-3">
-                <button className="text-yellow-700 underline text-sm" onClick={() => setFirestoreBlocked(null)}>Dismiss</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1">
           <Card>
@@ -154,14 +104,12 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
                 </Button>
 
                 {/* Admin Users (superuser only) */}
-                {isSuper && (
-                  <Button onClick={() => navigate('/admin/users')} variant={isActive('/admin/users') ? 'default' : 'ghost'} className="w-full justify-between py-3 px-3 mt-2" title="Admin Users">
-                    <div className="flex items-center gap-3">
-                      <Settings className="h-5 w-5 text-gray-700" />
-                      <span className="text-sm text-gray-800">Admin Users</span>
-                    </div>
-                  </Button>
-                )}
+                <Button onClick={async () => { if (await (await import('@/lib/firebase')).isSuperUser((await import('firebase/auth')).getAuth()?.currentUser || null)) navigate('/admin/users'); else alert('Only superusers can access this'); }} variant={isActive('/admin/users') ? 'default' : 'ghost'} className="w-full justify-between py-3 px-3 mt-2" title="Admin Users">
+                  <div className="flex items-center gap-3">
+                    <Settings className="h-5 w-5 text-gray-700" />
+                    <span className="text-sm text-gray-800">Admin Users</span>
+                  </div>
+                </Button>
 
               </div>
             </CardContent>

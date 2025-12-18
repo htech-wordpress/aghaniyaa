@@ -12,7 +12,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary: Orange (#ff8c00) */
+    /* Primary: Orange CTA (#ff8c00) - match Blue Ocean imagery */
     --primary: 33 100% 50%;
     --primary-foreground: 210 40% 98%;
 
@@ -31,7 +31,7 @@
     --ring: 33 100% 50%;
     --radius: 0.75rem;
 
-    /* Charts keep some variation around the orange/blue palette */
+    /* Charts emphasize primary orange and companion blue */
     --chart-1: 33 100% 50%;
     --chart-2: 203 76% 55%;
     --chart-3: 197 37% 24%;
@@ -74,6 +74,7 @@
   body {
     @apply text-foreground;
     min-height: 100vh;
-    background: linear-gradient(135deg, #ff8c00 0%, #35a4e1 100%);
+    /* Blue Ocean gradient: soft gray-blue top → vivid cyan mid → deep navy bottom */
+    background: linear-gradient(135deg, #c7ced2 0%, #2ea0d8 40%, #174f70 100%);
   }
 }

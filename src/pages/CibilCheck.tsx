@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ScrollAnimation } from '@/components/ScrollAnimation';
 import { FileSearch, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
-import { saveLead } from '@/lib/storage';
+import { saveLeadAsync } from '@/lib/storage';
 
 export function CibilCheck() {
   const [formData, setFormData] = useState({
@@ -24,16 +24,20 @@ export function CibilCheck() {
     setIsChecking(true);
 
     // Simulate API call delay
-    setTimeout(() => {
+    setTimeout(async () => {
       // Generate a random CIBIL score for demo (in real app, this would be from API)
       const generatedScore = Math.floor(Math.random() * 300) + 550; // Score between 550-850
       setScore(generatedScore);
 
-      // Save CIBIL check entry to localStorage
-      saveLead('cibil-check', {
-        ...formData,
-        cibilScore: generatedScore,
-      });
+      // Save CIBIL check entry to Firestore (fallback to local)
+      try {
+        await saveLeadAsync('cibil-check', {
+          ...formData,
+          cibilScore: generatedScore,
+        });
+      } catch (err) {
+        console.error('Failed to save cibil check:', err);
+      }
 
       setIsChecking(false);
     }, 2000);

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollAnimation } from '@/components/ScrollAnimation';
 import { Phone, Mail, MapPin, Clock, AlertCircle } from 'lucide-react';
-import { saveLead } from '@/lib/storage';
+import { saveLeadAsync } from '@/lib/storage';
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -21,23 +21,26 @@ export function Contact() {
     message: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Save contact form lead to localStorage
-    saveLead('contact', formData);
-    
-    alert('Thank you for contacting us! We will get back to you soon.');
-    setFormData({
-      name: '',
-      email: '',
-      mobile: '',
-      city: '',
-      state: '',
-      subject: '',
-      reason: '',
-      message: '',
-    });
+    try {
+      // Save contact form lead to Firestore (fallbacks to localStorage if not configured)
+      await saveLeadAsync('contact', formData);
+      alert('Thank you for contacting us! We will get back to you soon.');
+      setFormData({
+        name: '',
+        email: '',
+        mobile: '',
+        city: '',
+        state: '',
+        subject: '',
+        reason: '',
+        message: '',
+      });
+    } catch (err) {
+      alert('Failed to submit form: ' + (err as Error).message);
+    }
   };
 
   const handleChange = (field: string, value: string) => {

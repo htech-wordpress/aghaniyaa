@@ -75,35 +75,6 @@ export async function checkAuthConfiguration(): Promise<{ ok: boolean; message?:
   }
 }
 
-// Quick network probe to check if Firestore requests are being blocked by the
-// browser (eg. ad-blocker / privacy extension). We attempt a small REST call
-// to the Firestore REST API using the configured project and API key. If the
-// network is blocked, fetch will throw (TypeError) or fail; we return a helpful
-// message that the developer can act on.
-export async function checkFirestoreNetwork(): Promise<{ ok: boolean; message?: string; raw?: any }> {
-  const key = import.meta.env.VITE_FIREBASE_API_KEY;
-  const project = import.meta.env.VITE_FIREBASE_PROJECT_ID;
-  if (!key || !project) return { ok: false, message: 'Missing VITE_FIREBASE_API_KEY or VITE_FIREBASE_PROJECT_ID' };
-  const url = `https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents?pageSize=1&key=${key}`;
-  try {
-    const res = await fetch(url, { method: 'GET' });
-    // If the fetch succeeds we may still get permission errors; that's fine —
-    // the point of this probe is to detect network blocking (ERR_BLOCKED_BY_CLIENT)
-    // which manifests as a thrown error or non-response.
-    if (!res.ok) {
-      return { ok: true, message: 'Network OK (server returned error)', raw: { status: res.status, ok: res.ok } };
-    }
-    return { ok: true, message: 'Network OK', raw: { status: res.status } };
-  } catch (e: any) {
-    // Typical blocked errors show as TypeError: Failed to fetch or similar.
-    const msg = String(e?.message || 'Network error').toLowerCase();
-    if (msg.includes('failed to fetch') || msg.includes('blocked') || msg.includes('net::err_blocked_by_client')) {
-      return { ok: false, message: 'Network requests to Firestore appear to be blocked by a browser extension (ad-blocker or privacy shield). Please disable or allowlist `firestore.googleapis.com` for localhost.', raw: e };
-    }
-    return { ok: false, message: e?.message || 'Network error', raw: e };
-  }
-}
-
 export async function isAdminUID(uid: string): Promise<boolean> {
   if (!firestore) return false;
   try {
@@ -148,16 +119,8 @@ export async function isSuperUser(user: User | null): Promise<boolean> {
     const data = cfg.data();
     const emails: string[] = data?.emails || [];
     return Boolean(user.email && emails.includes(user.email));
-  } catch (e: any) {
-    // Suppress noisy permission errors (these can happen while rules are still
-    // being iterated on). Log a compact debug message instead.
-    const msg = String(e?.message || '').toLowerCase();
-    const code = String(e?.code || '');
-    if (code.includes('permission-denied') || msg.includes('missing or insufficient')) {
-      console.debug('isSuperUser permission denied while checking superuser status');
-    } else {
-      console.warn('isSuperUser error', e);
-    }
+  } catch (e) {
+    console.warn('isSuperUser error', e);
     return false;
   }
 }
@@ -187,14 +150,8 @@ export async function getAdminList(): Promise<Array<{ id: string; data: any }>> 
     // List admins from the `admins` collection
     const qSnapshot = await (await import('firebase/firestore')).getDocs((await import('firebase/firestore')).collection(firestore, 'admins'));
     return qSnapshot.docs.map(d => ({ id: d.id, data: d.data() }));
-  } catch (e: any) {
-    const msg = String(e?.message || '').toLowerCase();
-    const code = String(e?.code || '');
-    if (code.includes('permission-denied') || msg.includes('missing or insufficient')) {
-      console.debug('getAdminList permission denied');
-    } else {
-      console.warn('getAdminList error', e);
-    }
+  } catch (e) {
+    console.warn('getAdminList error', e);
     return [];
   }
 }
@@ -208,14 +165,8 @@ export async function getSuperAdminEmails(): Promise<string[]> {
     if (!snap.exists()) return [];
     const data = snap.data();
     return data?.emails || [];
-  } catch (e: any) {
-    const msg = String(e?.message || '').toLowerCase();
-    const code = String(e?.code || '');
-    if (code.includes('permission-denied') || msg.includes('missing or insufficient')) {
-      console.debug('getSuperAdminEmails permission denied');
-    } else {
-      console.warn('getSuperAdminEmails error', e);
-    }
+  } catch (e) {
+    console.warn('getSuperAdminEmails error', e);
     return [];
   }
 }

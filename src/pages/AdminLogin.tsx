@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Lock, AlertCircle } from 'lucide-react';
 import { checkAdminPassword, setAdminAuthenticated, initAdminPassword } from '@/lib/storage';
+import { signInWithGoogle, checkAuthConfiguration } from '@/lib/firebase';
 
 export function AdminLogin() {
   const [password, setPassword] = useState('');
@@ -14,6 +15,15 @@ export function AdminLogin() {
 
   useEffect(() => {
     initAdminPassword();
+
+    // Diagnose Firebase Auth configuration and show helpful message
+    (async () => {
+      const cfg = await checkAuthConfiguration();
+      if (!cfg.ok) {
+        setError('Firebase Auth configuration issue: ' + (cfg.message || 'See console for details'));
+        console.warn('Auth configuration check failed:', cfg);
+      }
+    })();
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -26,6 +36,20 @@ export function AdminLogin() {
     } else {
       setError('Invalid password. Please try again.');
       setPassword('');
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const user = await signInWithGoogle();
+      if (user) {
+        // Backwards compatibility: set local session flag too
+        setAdminAuthenticated(true);
+        navigate('/admin/dashboard');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message || 'Google sign-in failed');
     }
   };
 
@@ -57,7 +81,10 @@ export function AdminLogin() {
             {error && (
               <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-md">
                 <AlertCircle className="h-4 w-4" />
-                {error}
+                <div>
+                  <div>{error}</div>
+                  <div className="text-xs text-gray-500 mt-1">See console for troubleshooting steps: ensure Web App is registered, Google provider is enabled, and localhost is listed under Authorized domains in Firebase Authentication settings.</div>
+                </div>
               </div>
             )}
 
@@ -66,9 +93,16 @@ export function AdminLogin() {
             </Button>
           </form>
 
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            <p>Default password: admin123</p>
-            <p className="text-xs mt-1">(Change it in admin settings)</p>
+          <div className="mt-4 text-center">
+            <div className="my-3">
+              <Button variant="outline" onClick={handleGoogleSignIn} className="w-full">
+                Sign in with Google
+              </Button>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p>Default password: admin123</p>
+              <p className="text-xs mt-1">(Change it in admin settings)</p>
+            </div>
           </div>
         </CardContent>
       </Card>

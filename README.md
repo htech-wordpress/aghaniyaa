@@ -197,10 +197,17 @@ The platform features partnerships with leading financial institutions including
 
 ## Admin Panel
 
+The app now supports Firestore-backed lead storage and Firebase Authentication for admins.
+
+### Firestore & Security rules
+- File `firestore.rules` in the repo contains recommended security rules that restrict access to `leads` and admin configuration only to authenticated admins (by UID) or emails listed in `adminConfig/superusers`.
+- Apply these rules in the Firebase Console or via the Firebase CLI to protect production data.
+
+
 The application includes a fully functional admin panel for managing leads:
 
 - **Login**: Navigate to `/admin/login` (default password: `admin123`)
-- **Dashboard**: View and manage all leads by category
+- **Dashboard**: View and manage Website Leads by category (import/export via CSV available)
 - **Features**:
   - View leads by category (Home Loan, Personal Loan, Credit Cards, CIBIL Check, etc.)
   - Export leads as JSON
