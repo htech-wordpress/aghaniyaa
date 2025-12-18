@@ -11,14 +11,36 @@ service cloud.firestore {
       );
     }
 
-    // Leads collection: only admins can read/write
+    // Leads collection: allow anyone to CREATE a lead (form submissions)
+    // but restrict read/update/delete to admins. Validate required fields
+    // and size to mitigate abuse.
     match /leads/{leadId} {
-      allow read, write: if isAdmin();
+      allow create: if request.resource.data.category is string
+                    && request.resource.data.timestamp is string
+                    && request.resource.data.data is map
+                    // category must be one of known categories
+                    && request.resource.data.category in ['home-loan','personal-loan','business-loan','education-loan','car-loan','gold-loan','loan-against-property','credit-card','cibil-check','contact','careers']
+                    // document size limit (256KB)
+                    && request.resource.size < 256 * 1024;
+      allow read, update, delete: if isAdmin();
     }
 
-    // Admin config: only admins can read/write
+    // Admin config: allow authenticated users to read the superusers doc
+    // so the client can determine whether the signed-in user is a superuser.
+    // Writes are restricted to either existing admins, an existing superuser
+    // email already listed, or when the request itself contains the caller's
+    // email in `request.resource.data.emails` (this allows a user to add themself
+    // when seeding/creating the document).
     match /adminConfig/superusers {
-      allow read, write: if isAdmin();
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (
+        // admin UID already present
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        // OR caller's email is included in the new data being written
+        || (request.resource.data.emails != null && request.auth.token.email in request.resource.data.emails)
+        // OR caller's email is already listed in the existing doc
+        || (get(/databases/$(database)/documents/adminConfig/superusers).data.emails != null && request.auth.token.email in get(/databases/$(database)/documents/adminConfig/superusers).data.emails)
+      );
     }
 
     // Admins collection: allow admin to read their own doc and allow superusers to create/modify admins

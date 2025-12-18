@@ -17,7 +17,7 @@ export function About() {
         {/* Hero Section */}
         <ScrollAnimation direction="fade" delay={0.2}>
           <div className="text-center mb-16">
-            <h1 className="text-5xl font-bold text-black mb-6">
+            <h1 className="text-5xl font-bold text-white mb-6">
               AGHANIYA – India's Leading Loan Distribution Company
             </h1>
             <p className="text-xl text-gray-100 max-w-4xl mx-auto">
@@ -52,7 +52,7 @@ export function About() {
             <Card3D intensity={8}>
               <Card>
                 <CardContent className="pt-6">
-                  <h2 className="text-3xl font-bold text-primary mb-4">About Us</h2>
+                  <h2 className="text-3xl font-bold text-white mb-4">About Us</h2>
               <div className="space-y-4 text-gray-700">
                 <p className="text-lg leading-relaxed">
                   At AGHANIYA, we are committed to helping clients reach their financial objectives with tailored solutions. 
@@ -76,7 +76,7 @@ export function About() {
             <Card3D intensity={8}>
               <Card>
                 <CardContent className="pt-6">
-                  <h2 className="text-3xl font-bold text-primary mb-4">Our Mission</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Mission</h2>
               <p className="text-lg text-gray-700 leading-relaxed">
                 To democratize access to financial products and services, ensuring that every individual and business 
                 has the opportunity to achieve their financial goals through our comprehensive network of trusted partners.
@@ -90,7 +90,7 @@ export function About() {
             <Card3D intensity={8}>
               <Card>
                 <CardContent className="pt-6">
-                  <h2 className="text-3xl font-bold text-primary mb-4">Our Vision</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Vision</h2>
               <p className="text-lg text-gray-700 leading-relaxed">
                 To be India's most trusted and preferred loan distribution platform, recognized for our transparency, 
                 customer-centric approach, and commitment to excellence in financial services.
@@ -104,7 +104,7 @@ export function About() {
             <Card3D intensity={8}>
               <Card>
                 <CardContent className="pt-6">
-                  <h2 className="text-3xl font-bold text-primary mb-4">Why Choose AGHANIYA?</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose AGHANIYA?</h2>
               <ul className="space-y-3 text-lg text-gray-700">
                 <li className="flex items-start">
                   <span className="text-primary mr-2">✓</span>

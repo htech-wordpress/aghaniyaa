@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollAnimation } from '@/components/ScrollAnimation';
 import { Card3D } from '@/components/Card3D';
 import { CreditCard, TrendingUp, Gift, Shield, Zap } from 'lucide-react';
-import { saveLeadAsync } from '@/lib/storage';
+import { saveLead } from '@/lib/storage';
 
 const creditCards = [
   {
@@ -51,31 +51,27 @@ export function CreditCards() {
     employmentType: '',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Save lead to Firestore (fallback to localStorage)
+    
+    // Save lead to localStorage
     const selectedCardData = creditCards.find(card => card.id === selectedCard);
-    try {
-      await saveLeadAsync('credit-card', {
-        ...formData,
-        selectedCard: selectedCardData ? selectedCardData.name : null,
-        selectedCardIssuer: selectedCardData ? selectedCardData.issuer : null,
-      });
-
-      alert('Thank you for your interest! Our team will contact you soon with the best credit card offers.');
-      setFormData({
-        fullName: '',
-        email: '',
-        mobile: '',
-        city: '',
-        monthlyIncome: '',
-        employmentType: '',
-      });
-      setSelectedCard(null);
-    } catch (err) {
-      alert('Failed to submit: ' + (err as Error).message);
-    }
+    saveLead('credit-card', {
+      ...formData,
+      selectedCard: selectedCardData ? selectedCardData.name : null,
+      selectedCardIssuer: selectedCardData ? selectedCardData.issuer : null,
+    });
+    
+    alert('Thank you for your interest! Our team will contact you soon with the best credit card offers.');
+    setFormData({
+      fullName: '',
+      email: '',
+      mobile: '',
+      city: '',
+      monthlyIncome: '',
+      employmentType: '',
+    });
+    setSelectedCard(null);
   };
 
   const handleChange = (field: string, value: string) => {

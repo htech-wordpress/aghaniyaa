@@ -88,13 +88,64 @@ export function subscribeToLeads(callback: (leads: Lead[]) => void, category?: L
   const db = ensureFirestore();
   const ref = collection(db, 'leads');
   const q = category ? query(ref, where('category', '==', category), orderBy('timestamp', 'desc')) : query(ref, orderBy('timestamp', 'desc'));
-  return onSnapshot(q, (snapshot) => {
-    const leads = snapshot.docs.map(s => {
-      const d = s.data() as any;
-      return { id: s.id, category: d.category, timestamp: d.timestamp, data: d.data };
+
+  // Attach an error handler to avoid uncaught permission errors from bubbling up
+  // into the Firestore internals (which can cause internal assertion failures).
+  try {
+    let cancelled = false;
+    let unsub: (() => void) | null = null;
+
+    // Probe permissions with a one-time read. If the caller doesn't have
+    // permission to read `leads`, getDocs will throw and we avoid attaching
+    // the watch which can drive internal client errors.
+    getDocs(q).then((initial) => {
+      if (cancelled) return;
+      const initialLeads = initial.docs.map(s => {
+        const d = s.data() as any;
+        return { id: s.id, category: d.category, timestamp: d.timestamp, data: d.data };
+      });
+      try { callback(initialLeads); } catch (e) {}
+
+      // Now attach the real-time listener
+      unsub = onSnapshot(q, (snapshot) => {
+        const leads = snapshot.docs.map(s => {
+          const d = s.data() as any;
+          return { id: s.id, category: d.category, timestamp: d.timestamp, data: d.data };
+        });
+        callback(leads);
+      }, (err) => {
+        const msg = String(err?.message || '').toLowerCase();
+        const code = String(err?.code || '').toLowerCase();
+        if (code.includes('permission-denied') || msg.includes('permission-denied') || msg.includes('missing or insufficient')) {
+          console.debug('subscribeToLeads permission denied (snapshot)');
+          try { callback([]); } catch (e) {}
+          try { unsub && unsub(); } catch (e) {}
+          return;
+        }
+
+        console.error('subscribeToLeads error', err);
+      });
+    }).catch((err: any) => {
+      const msg = String(err?.message || '').toLowerCase();
+      const code = String(err?.code || '').toLowerCase();
+      if (code.includes('permission-denied') || msg.includes('permission-denied') || msg.includes('missing or insufficient')) {
+        console.debug('subscribeToLeads permission denied on initial probe');
+        try { callback([]); } catch (e) {}
+        return;
+      }
+
+      console.error('subscribeToLeads initial probe failed', err);
+      try { callback([]); } catch (e) {}
     });
-    callback(leads);
-  });
+
+    // Return a synchronous unsubscribe that will cancel pending probe or the live listener
+    return () => { cancelled = true; try { unsub && unsub(); } catch (e) {} };
+  } catch (e) {
+    // If onSnapshot itself throws synchronously, fallback to no-op
+    console.debug('subscribeToLeads failed to attach listener', e);
+    try { callback([]); } catch (err) {}
+    return () => {};
+  }
 }
 
 // Migrate localStorage leads into Firestore. Idempotent: will skip documents that already exist by id.

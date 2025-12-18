@@ -7,37 +7,37 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-orange-200 bg-white/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
       <div className="container mx-auto px-4">
-        <div className="flex h-20 items-center justify-between">
-          <Link to="/" aria-label="AGHANIYA Home" title="AGHANIYA - Home" className="flex items-center space-x-3">
+        <div className="flex h-16 items-center justify-between">
+          <Link to="/" className="flex items-center space-x-2">
             <img
               src="/Aghaniya logo.svg"
               alt="AGHANIYA Logo"
-              className="h-14 w-auto transition-transform transform hover:scale-105 drop-shadow"
+              className="h-10 w-auto"
             />
           </Link>
 
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
+            {/* <Link to="/" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
               Home
-            </Link>
-            <Link to="/loans" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
+            </Link> */}
+            <Link to="/loans" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors">
               Loans
             </Link>
-            <Link to="/credit-cards" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
+            <Link to="/credit-cards" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors">
               Credit Cards
             </Link>
-            <Link to="/about" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
+            <Link to="/about" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors">
               About Us
             </Link>
-            <Link to="/our-team" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
+            <Link to="/our-team" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors">
               Our Team
             </Link>
-            <Link to="/contact" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
+            <Link to="/contact" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors">
               Contact Us
             </Link>
-            <Link to="/careers" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
+            <Link to="/careers" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors">
               Careers
             </Link>
           </nav>
@@ -59,8 +59,6 @@ export function Header() {
               variant="ghost"
               size="icon"
               className="md:hidden"
-              aria-label="Toggle menu"
-              title="Toggle menu"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -72,49 +70,49 @@ export function Header() {
           <div className="md:hidden py-4 space-y-4 border-t">
             <Link
               to="/"
-              className="block text-sm font-medium text-gray-900 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+              className="block text-sm font-medium text-gray-900 hover:text-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
               Home
             </Link>
             <Link
               to="/loans"
-              className="block text-sm font-medium text-gray-900 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+              className="block text-sm font-medium text-gray-900 hover:text-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
               Loans
             </Link>
             <Link
               to="/credit-cards"
-              className="block text-sm font-medium text-gray-900 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+              className="block text-sm font-medium text-gray-900 hover:text-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
               Credit Cards
             </Link>
             <Link
               to="/about"
-              className="block text-sm font-medium text-gray-900 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+              className="block text-sm font-medium text-gray-900 hover:text-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
               About Us
             </Link>
             <Link
               to="/our-team"
-              className="block text-sm font-medium text-gray-900 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+              className="block text-sm font-medium text-gray-900 hover:text-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
               Our Team
             </Link>
             <Link
               to="/contact"
-              className="block text-sm font-medium text-gray-900 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+              className="block text-sm font-medium text-gray-900 hover:text-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
               Contact Us
             </Link>
             <Link
               to="/careers"
-              className="block text-sm font-medium text-gray-900 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+              className="block text-sm font-medium text-gray-900 hover:text-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
               Careers

@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollAnimation } from '@/components/ScrollAnimation';
 import { Briefcase, Users, Target } from 'lucide-react';
-import { saveLeadAsync } from '@/lib/storage';
+import { saveLead } from '@/lib/storage';
 
 const experienceLevels = ['0-2 years', '2-5 years', '5-10 years', '10+ years'];
 const departments = [
@@ -50,12 +50,12 @@ export function Careers() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      await saveLeadAsync('careers', {
+      saveLead('careers', {
         ...formData,
         source: 'careers-page',
       });

@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { saveLeadAsync } from '@/lib/storage';
+import { saveLead } from '@/lib/storage';
 import type { LeadCategory } from '@/lib/storage';
 
 interface LoanFormProps {
@@ -27,33 +27,29 @@ export function LoanForm({ loanType, description, category }: LoanFormProps) {
     message: '',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Save lead to Firestore (fallback to localStorage)
-    try {
-      await saveLeadAsync(category, {
-        ...formData,
-        loanType,
-      });
-
-      alert(`Thank you for your interest in ${loanType}. Our team will contact you soon!`);
-
-      // Reset form
-      setFormData({
-        fullName: '',
-        email: '',
-        mobile: '',
-        city: '',
-        state: '',
-        loanAmount: '',
-        employmentType: '',
-        monthlyIncome: '',
-        message: '',
-      });
-    } catch (err) {
-      alert('Failed to submit: ' + (err as Error).message);
-    }
+    // Save lead to localStorage
+    saveLead(category, {
+      ...formData,
+      loanType,
+    });
+    
+    alert(`Thank you for your interest in ${loanType}. Our team will contact you soon!`);
+    
+    // Reset form
+    setFormData({
+      fullName: '',
+      email: '',
+      mobile: '',
+      city: '',
+      state: '',
+      loanAmount: '',
+      employmentType: '',
+      monthlyIncome: '',
+      message: '',
+    });
   };
 
   const handleChange = (field: string, value: string) => {

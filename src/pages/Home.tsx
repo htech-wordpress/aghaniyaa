@@ -180,7 +180,7 @@ export function Home() {
         <div className="container mx-auto px-4">
           <ScrollAnimation direction="scale" delay={0.2}>
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-black mb-4">
+              <h2 className="text-4xl font-bold text-white mb-4">
                 AGHANIYA – India's Leading Loan Distribution Company
               </h2>
             </div>
@@ -266,7 +266,7 @@ export function Home() {
         <div className="container mx-auto px-4">
           <ScrollAnimation direction="fade" delay={0.2}>
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-black mb-4">Advantages of AGHANIYA</h2>
+              <h2 className="text-4xl font-bold text-white mb-4">Advantages of AGHANIYA</h2>
             </div>
           </ScrollAnimation>
 
