@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { saveLeadAsync } from '@/lib/storage';
+import { saveLeadAsync } from '@/lib/leads';
 import type { LeadCategory } from '@/lib/storage';
 
 interface LoanFormProps {
@@ -29,8 +29,7 @@ export function LoanForm({ loanType, description, category }: LoanFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Save lead to Firestore (fallback to localStorage)
+
     try {
       await saveLeadAsync(category, {
         ...formData,
@@ -51,8 +50,9 @@ export function LoanForm({ loanType, description, category }: LoanFormProps) {
         monthlyIncome: '',
         message: '',
       });
-    } catch (err) {
-      alert('Failed to submit: ' + (err as Error).message);
+    } catch (error) {
+      console.error('Error saving loan lead', error);
+      alert('Something went wrong. Please try again.');
     }
   };
 

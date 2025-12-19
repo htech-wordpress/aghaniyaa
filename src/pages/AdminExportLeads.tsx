@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { exportLeadsToCSV, getAllLeadsAsync, getLeadsByCategoryAsync } from '@/lib/storage';
+import { exportLeadsToCSV, getAllLeadsAsync, getLeadsByCategoryAsync } from '@/lib/leads';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 
 export function AdminExportLeads() {

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-:root {
+  :root {
     /* Light theme based on orange / blue gradient palette */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -12,7 +12,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary: Orange CTA (#ff8c00) - match Blue Ocean imagery */
+    /* Primary: Orange (#ff8c00) */
     --primary: 33 100% 50%;
     --primary-foreground: 210 40% 98%;
 
@@ -31,50 +31,53 @@
     --ring: 33 100% 50%;
     --radius: 0.75rem;
 
-    /* Charts emphasize primary orange and companion blue */
+    /* Charts keep some variation around the orange/blue palette */
     --chart-1: 33 100% 50%;
     --chart-2: 203 76% 55%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-}
+  }
 
-.dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 33 100% 50%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 203 76% 55%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 33 100% 50%;
-  --chart-1: 33 100% 50%;
-  --chart-2: 203 76% 55%;
-  --chart-3: 30 80% 55%;
-  --chart-4: 280 65% 60%;
-  --chart-5: 340 75% 55%;
-}
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 33 100% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 203 76% 55%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 33 100% 50%;
+    --chart-1: 33 100% 50%;
+    --chart-2: 203 76% 55%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
 }
 
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
-    @apply text-foreground;
+    @apply text-foreground bg-slate-50 overflow-x-hidden;
     min-height: 100vh;
-    /* Blue Ocean gradient: soft gray-blue top → vivid cyan mid → deep navy bottom */
-    background: linear-gradient(135deg, #c7ced2 0%, #2ea0d8 40%, #174f70 100%);
+  }
+
+  .bg-hero-gradient {
+    @apply bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white;
   }
 }
