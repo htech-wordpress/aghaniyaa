@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react'; // updated
 import { useLocation } from 'react-router-dom';
+import { getAuth } from 'firebase/auth'; // updated
 import { Button } from '@/components/ui/button';
-import { saveLeadAsync, updateLeadAsync, subscribeToLeads, importLeadsFromCSV, exportLeadsToCSV } from '@/lib/storage';
+import { saveLeadAsync, updateLeadAsync, subscribeToLeads, importLeadsFromCSV, importLeadsFromExcel, exportLeadsToCSV, uploadLeadDocument, addDocumentToLeadAsync } from '@/lib/leads';
 import type { Lead, LeadCategory } from '@/lib/storage';
 
 type Props = {
@@ -16,9 +17,13 @@ export function LeadsPage({ category, title }: Props) {
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [loanTypeFilter, setLoanTypeFilter] = useState<string>('All');
   const [sourceFilter, setSourceFilter] = useState<string>('All');
+  const [updatedByFilter, setUpdatedByFilter] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // read query params to prefill filters
   const { search } = useLocation();
@@ -39,9 +44,6 @@ export function LeadsPage({ category, title }: Props) {
 
 
 
-  const loadLeads = () => {
-    // kept for API compatibility; subscription handles updates
-  };
 
   const manualPredicate = (l: Lead) => String(l.data?.source || '').toLowerCase().includes('manual');
 
@@ -63,8 +65,19 @@ export function LeadsPage({ category, title }: Props) {
     );
 
     return () => unsub();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveCategory]);
+
+  // Sync selectedLead with real-time updates
+  useEffect(() => {
+    if (selectedLead) {
+      const fresh = leads.find(l => l.id === selectedLead.id);
+      // Compare stringified to avoid infinite loops if object reference changes but content is same
+      if (fresh && JSON.stringify(fresh.data) !== JSON.stringify(selectedLead.data)) {
+        setSelectedLead(fresh);
+      }
+    }
+  }, [leads, selectedLead]); // Added selectedLead to dependencies for correctness, reliant on the diff check
 
   const sortedDisplayedLeads = displayedLeads.slice().sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
@@ -72,10 +85,12 @@ export function LeadsPage({ category, title }: Props) {
     const status = l.data?.status || 'New';
     const loanType = l.data?.loanType || '';
     const source = l.data?.source || 'Website Leads';
-
+    const updatedBy = l.data?.updatedBy || '';
+    // ... existing filter logic ...
     if (statusFilter !== 'All' && status !== statusFilter) return false;
     if (loanTypeFilter !== 'All' && loanTypeFilter !== 'Website Leads' && loanType !== loanTypeFilter) return false;
     if (sourceFilter !== 'All' && source !== sourceFilter) return false;
+    if (updatedByFilter !== 'All' && updatedBy !== updatedByFilter) return false;
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -108,6 +123,9 @@ export function LeadsPage({ category, title }: Props) {
     return '-';
   };
   const leadStatus = (l: Lead) => l.data?.status || 'New';
+
+
+
 
   // Small UI subcomponents (copied for isolation)
   const StatusBadge = ({ status }: { status: string }) => {
@@ -184,7 +202,18 @@ export function LeadsPage({ category, title }: Props) {
   const LeadDetailsDialog = ({ lead, onClose, onUpdate }: any) => {
     const [currentStatus, setCurrentStatus] = useState(lead.data?.status || 'New');
     const [comment, setComment] = useState('');
-    const [activeTab, setActiveTab] = useState('details');
+    const [activeTab, setActiveTab] = useState('update');
+
+    // State for new loan input
+    const [newLoan, setNewLoan] = useState({ bank: '', amount: '', emi: '' });
+
+    const parseExistingLoans = (val: any) => {
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string' && val.trim()) {
+        try { return JSON.parse(val); } catch (e) { return [{ bank: 'Unknown', amount: val, emi: '-' }]; }
+      }
+      return [];
+    };
 
     // Edit form state
     const [form, setForm] = useState({
@@ -195,6 +224,20 @@ export function LeadsPage({ category, title }: Props) {
       amount: lead.data?.amount || lead.data?.loanAmount || '',
       reason: lead.data?.reason || '',
       source: lead.data?.source || '',
+      // Additional Details
+      employmentType: lead.data?.employmentType || '',
+      monthlyIncome: lead.data?.monthlyIncome || '',
+      existingLoans: parseExistingLoans(lead.data?.existingLoans),
+      // Bank Config
+      accountHolder: lead.data?.accountHolder || '',
+      accountNumber: lead.data?.accountNumber || '',
+      ifsc: lead.data?.ifsc || '',
+      bankName: lead.data?.bankName || '',
+      // Address
+      address: lead.data?.address || '',
+      city: lead.data?.city || '',
+      state: lead.data?.state || '',
+      zipCode: lead.data?.zipCode || '',
     });
 
     useEffect(() => {
@@ -206,19 +249,61 @@ export function LeadsPage({ category, title }: Props) {
         amount: lead.data?.amount || lead.data?.loanAmount || '',
         reason: lead.data?.reason || '',
         source: lead.data?.source || '',
+        // Additional Details
+        employmentType: lead.data?.employmentType || '',
+        monthlyIncome: lead.data?.monthlyIncome || '',
+        existingLoans: parseExistingLoans(lead.data?.existingLoans),
+        // Bank Config
+        accountHolder: lead.data?.accountHolder || '',
+        accountNumber: lead.data?.accountNumber || '',
+        ifsc: lead.data?.ifsc || '',
+        bankName: lead.data?.bankName || '',
+        // Address
+        address: lead.data?.address || '',
+        city: lead.data?.city || '',
+        state: lead.data?.state || '',
+        zipCode: lead.data?.zipCode || '',
       });
+      // Also update current status when lead updates from background
+      if (lead.data?.status) setCurrentStatus(lead.data.status);
     }, [lead]);
 
     if (!lead) return null;
 
+    const handleDownload = async (url: string, filename: string) => {
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(blobUrl);
+        document.body.removeChild(a);
+      } catch (e) {
+        console.error('Download failed, opening in new tab', e);
+        window.open(url, '_blank');
+      }
+    };
+
     const handleStatusUpdate = () => {
       if (!comment.trim()) { alert('Please add a comment'); return; }
+      const currentUser = getAuth().currentUser?.email || 'Unknown User';
       const updated: Lead = {
         ...lead,
         data: {
           ...lead.data,
           status: currentStatus,
-          pipeline: [ ...(lead.data?.pipeline || []), { status: currentStatus, date: new Date().toISOString(), comment } ],
+          updatedBy: currentUser, // Record who updated
+          lastUpdated: new Date().toISOString(),
+          pipeline: [...(lead.data?.pipeline || []), {
+            status: currentStatus,
+            date: new Date().toISOString(),
+            comment,
+            updatedBy: currentUser
+          }],
         }
       };
       onUpdate(updated);
@@ -226,6 +311,7 @@ export function LeadsPage({ category, title }: Props) {
 
     const handleSaveEdit = () => {
       if (!form.fullName || !form.email || !form.mobile) { alert('Please fill at least name, email and mobile'); return; }
+      const currentUser = getAuth().currentUser?.email || 'Unknown User';
       const updated: Lead = {
         ...lead,
         data: {
@@ -239,6 +325,20 @@ export function LeadsPage({ category, title }: Props) {
           loanAmount: form.amount,
           reason: form.reason,
           source: form.source,
+          // New fields
+          employmentType: form.employmentType,
+          monthlyIncome: form.monthlyIncome,
+          existingLoans: form.existingLoans,
+          accountHolder: form.accountHolder,
+          accountNumber: form.accountNumber,
+          ifsc: form.ifsc,
+          bankName: form.bankName,
+          address: form.address,
+          city: form.city,
+          state: form.state,
+          zipCode: form.zipCode,
+          updatedBy: currentUser, // Record who updated
+          lastUpdated: new Date().toISOString(),
         }
       };
       onUpdate(updated);
@@ -291,10 +391,11 @@ export function LeadsPage({ category, title }: Props) {
 
             <div>
               <div className="flex items-center gap-2 border-b border-gray-200 mb-4">
-                <button onClick={() => setActiveTab('details')} className={`px-4 py-2 ${activeTab === 'details' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}>Details</button>
-                <button onClick={() => setActiveTab('pipeline')} className={`px-4 py-2 ${activeTab === 'pipeline' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}>Pipeline</button>
                 <button onClick={() => setActiveTab('update')} className={`px-4 py-2 ${activeTab === 'update' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}>Update Status</button>
+                <button onClick={() => setActiveTab('pipeline')} className={`px-4 py-2 ${activeTab === 'pipeline' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}>Pipeline</button>
+                <button onClick={() => setActiveTab('documents')} className={`px-4 py-2 ${activeTab === 'documents' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}>Documents</button>
                 <button onClick={() => setActiveTab('edit')} className={`px-4 py-2 ${activeTab === 'edit' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}>Edit</button>
+                <button onClick={() => setActiveTab('details')} className={`px-4 py-2 ${activeTab === 'details' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-600'}`}>Details</button>
               </div>
 
               {activeTab === 'details' && (
@@ -303,12 +404,85 @@ export function LeadsPage({ category, title }: Props) {
                 </div>
               )}
 
+              {activeTab === 'documents' && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">Uploaded Documents</h3>
+                    <label className="cursor-pointer bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-700">
+                      Upload New
+                      <input type="file" className="hidden" onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          // Dynamic import to avoid heavy load if unused, or just allow it since used often
+                          const { uploadLeadDocument, addDocumentToLeadAsync } = await import('@/lib/leads');
+                          if (!confirm(`Upload ${file.name}?`)) return;
+
+                          // Show temp loading state if needed, or just let global refresh handle it? 
+                          // Ideally local state key
+                          const url = await uploadLeadDocument(lead.id, file);
+                          await addDocumentToLeadAsync(lead.id, { name: file.name, url, type: file.type });
+                          alert('Document uploaded successfully!');
+                          // Force refresh or rely on subscription?
+                          // Subscription to 'leads' updates the list, but 'selectedLead' might be stale?
+                          // 'selectedLead' in LeadsPage is just a state object.
+                          // We need to close dialog or re-fetch active lead. 
+                          // Actually, subscription updates 'leads' array. We should derive 'selectedLead' from 'leads' array to be reactive?
+                          // For now, simpler: close dialog or just alert.
+                          // Better: Trigger a local update if possible, or just re-select from props?
+                          // Since 'onUpdate' prop exists but is for saving...
+                          // The Firestore update will trigger subscription update.
+                          // But LeadDetailsDialog uses 'lead' prop which comes from 'selectedLead' state.
+                          // 'selectedLead' state is static once set!
+                          // We should make LeadDetailsDialog reactive or manually update 'selectedLead'.
+                          // Quick fix: manually update selectedLead copy? 
+                          // Or just close dialog.
+                          // Let's rely on parent re-render? No, parent passes 'selectedLead' which is state.
+                          // We will call onUpdate with new data locally to refresh view?
+                          onUpdate({
+                            ...lead,
+                            data: {
+                              ...lead.data,
+                              documents: [...(lead.data?.documents || []), { name: file.name, url, type: file.type, uploadedAt: new Date().toISOString(), uploadedBy: getAuth().currentUser?.email }]
+                            }
+                          });
+                        } catch (err: any) {
+                          console.error(err);
+                          alert('Upload failed: ' + err.message);
+                        }
+                      }} />
+                    </label>
+                  </div>
+
+                  {(!lead.data?.documents || lead.data.documents.length === 0) && (
+                    <p className="text-gray-500 text-sm">No documents uploaded yet.</p>
+                  )}
+
+                  <div className="grid grid-cols-1 gap-2">
+                    {lead.data?.documents?.map((doc: any, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between p-3 border rounded-md bg-gray-50">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-blue-100 rounded flex items-center justify-center text-blue-600">📄</div>
+                          <div>
+                            <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-600 hover:underline">{doc.name}</a>
+                            <p className="text-xs text-gray-500">{new Date(doc.uploadedAt).toLocaleString()} • {doc.uploadedBy || 'Unknown'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {activeTab === 'pipeline' && (
                 <div className="space-y-4">
                   {(lead.data?.pipeline || []).map((item: any, idx: number) => (
                     <div key={idx} className="border-l-4 border-blue-500 pl-4 py-2">
                       <div className="flex items-center justify-between mb-2">
-                        <StatusBadge status={item.status} />
+                        <div className="flex flex-col">
+                          <StatusBadge status={item.status} />
+                          <span className="text-xs text-gray-500 mt-1">Updated by: {item.updatedBy || 'Unknown'}</span>
+                        </div>
                         <span className="text-sm text-gray-500">{new Date(item.date).toLocaleString()}</span>
                       </div>
                       <p className="text-gray-700">{item.comment}</p>
@@ -370,6 +544,90 @@ export function LeadsPage({ category, title }: Props) {
                     </div>
                   </div>
 
+                  <div className="border-t border-gray-100 pt-4">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-3">Additional Information</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Employment Type</label>
+                        <input value={form.employmentType} onChange={(e) => setForm({ ...form, employmentType: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Salaried / Business" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Income</label>
+                        <input value={form.monthlyIncome} onChange={(e) => setForm({ ...form, monthlyIncome: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Existing Loans</label>
+                        <div className="space-y-2 mb-2">
+                          {Array.isArray(form.existingLoans) && form.existingLoans.map((loan: any, idx: number) => (
+                            <div key={idx} className="flex items-center gap-2 bg-gray-50 p-2 rounded border">
+                              <span className="flex-1 text-sm font-medium">{loan.bank} - ₹{loan.amount} (EMI: {loan.emi})</span>
+                              <button onClick={() => {
+                                const newLoans = [...form.existingLoans];
+                                newLoans.splice(idx, 1);
+                                setForm({ ...form, existingLoans: newLoans });
+                              }} className="text-red-500 hover:text-red-700">×</button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <input placeholder="Bank Name" value={newLoan.bank} onChange={(e) => setNewLoan({ ...newLoan, bank: e.target.value })} className="flex-1 px-2 py-1 border rounded text-sm" />
+                          <input placeholder="Amount" value={newLoan.amount} onChange={(e) => setNewLoan({ ...newLoan, amount: e.target.value })} className="w-24 px-2 py-1 border rounded text-sm" />
+                          <input placeholder="EMI" value={newLoan.emi} onChange={(e) => setNewLoan({ ...newLoan, emi: e.target.value })} className="w-20 px-2 py-1 border rounded text-sm" />
+                          <Button size="sm" onClick={() => {
+                            if (newLoan.bank && newLoan.amount) {
+                              setForm({ ...form, existingLoans: [...(Array.isArray(form.existingLoans) ? form.existingLoans : []), newLoan] });
+                              setNewLoan({ bank: '', amount: '', emi: '' });
+                            }
+                          }}>Add</Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-4">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-3">Address Details</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
+                        <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                        <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                        <input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Zip Code</label>
+                        <input value={form.zipCode} onChange={(e) => setForm({ ...form, zipCode: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-4">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-3">Bank Details</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Account Holder</label>
+                        <input value={form.accountHolder} onChange={(e) => setForm({ ...form, accountHolder: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
+                        <input value={form.bankName} onChange={(e) => setForm({ ...form, bankName: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Account Number</label>
+                        <input value={form.accountNumber} onChange={(e) => setForm({ ...form, accountNumber: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">IFSC Code</label>
+                        <input value={form.ifsc} onChange={(e) => setForm({ ...form, ifsc: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
                     <textarea value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
@@ -392,26 +650,57 @@ export function LeadsPage({ category, title }: Props) {
     const f = e.target.files?.[0];
     if (!f) return;
 
+    // Reset input so same file can be selected again if needed
+    e.target.value = '';
+
+    setIsImporting(true);
     const reader = new FileReader();
-    reader.onload = () => {
-      const text = String(reader.result || '');
-      if (f.name.endsWith('.csv') || f.type === 'text/csv') {
-        const imported = importLeadsFromCSV(text);
-        if (imported > 0) {
-          alert(`${imported} leads imported.`);
-          loadLeads();
-        } else {
-          alert('No leads were imported. Make sure the CSV has valid rows.');
+    reader.onload = async () => {
+      try {
+        // Check for Excel
+        if (f.name.endsWith('.xlsx') || f.name.endsWith('.xls')) {
+          const buffer = reader.result as ArrayBuffer;
+          const imported = await importLeadsFromExcel(buffer);
+          if (imported > 0) {
+            alert(`${imported} leads imported successfully.`);
+          } else {
+            alert('No leads were imported from Excel.');
+          }
         }
-      } else {
-        alert('Only CSV import is supported via this button. Use the Export/Import pages for more options.');
+        // Fallback to CSV/Text
+        else if (f.name.endsWith('.csv') || f.type === 'text/csv' || f.name.endsWith('.txt')) {
+          const text = String(reader.result || '');
+          const imported = await importLeadsFromCSV(text);
+          if (imported > 0) {
+            alert(`${imported} leads imported successfully.`);
+          } else {
+            alert('No leads were imported. Please check your CSV format.');
+          }
+        } else {
+          alert('Only CSV and Excel (.xlsx, .xls) files are supported.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Import failed due to an error.');
+      } finally {
+        setIsImporting(false);
       }
     };
-    reader.readAsText(f);
+    reader.onerror = () => {
+      alert('Failed to read file');
+      setIsImporting(false);
+    };
+
+    if (f.name.endsWith('.xlsx') || f.name.endsWith('.xls')) {
+      reader.readAsArrayBuffer(f);
+    } else {
+      reader.readAsText(f);
+    }
   };
 
   const handleAddLead = async (formData: any) => {
     const category = (formData.category as LeadCategory) || 'contact';
+    const currentUser = getAuth().currentUser?.email || 'Unknown User';
     const data = {
       fullName: formData.name,
       name: formData.name,
@@ -422,14 +711,20 @@ export function LeadsPage({ category, title }: Props) {
       source: formData.source || 'Manual Entry',
       status: 'New',
       comments: [],
-      pipeline: [{ status: 'New', date: new Date().toISOString(), comment: 'Lead created manually' }],
+      updatedBy: currentUser,
+      lastUpdated: new Date().toISOString(),
+      pipeline: [{ status: 'New', date: new Date().toISOString(), comment: 'Lead created manually', updatedBy: currentUser }],
     };
 
+    console.log('Attempting to save manual lead:', { category, data });
     try {
-      await saveLeadAsync(category, data);
+      const result = await saveLeadAsync(category, data);
+      console.log('Lead saved successfully:', result);
       setShowAddDialog(false);
-    } catch (e) {
-      alert('Failed to save lead: ' + (e as Error).message);
+      alert('Lead added successfully');
+    } catch (e: any) {
+      console.error('Failed to save lead:', e);
+      alert('Failed to save lead: ' + (e.message || JSON.stringify(e)));
     }
   };
 
@@ -442,16 +737,23 @@ export function LeadsPage({ category, title }: Props) {
     }
   };
 
-  const handleExportCSV = (onlyDisplayed = false) => {
-    const source = onlyDisplayed ? processedLeads : displayedLeads.filter(l => !String(l.data?.source || '').toLowerCase().includes('manual'));
-    const csv = exportLeadsToCSV(source);
-    if (!csv) { alert('No leads to export.'); return; }
+  const handleExportCSV = () => {
+    setShowExportDialog(true);
+  };
+
+  const handleExportChoice = (scope: 'all' | 'page') => {
+    const dataToExport = scope === 'all' ? sortedDisplayedLeads : pagedLeads;
+    const csv = exportLeadsToCSV(dataToExport);
+    if (!csv) { alert('No leads to export.'); setShowExportDialog(false); return; }
+
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `leads_${onlyDisplayed ? 'filtered' : 'website'}_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `leads_${scope}_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
+    window.URL.revokeObjectURL(url);
+    setShowExportDialog(false);
   };
 
   return (
@@ -465,11 +767,28 @@ export function LeadsPage({ category, title }: Props) {
         {effectiveCategory === 'manual' && (
           <div className="flex items-center gap-2">
             <Button variant="default" onClick={() => setShowAddDialog(true)}>Add Lead</Button>
-            <label className="inline-block">
-              <input type="file" accept=".csv,text/csv,.xlsx,.xls" onChange={handleImportFile} className="hidden" />
-              <Button variant="outline">Import</Button>
-            </label>
-            <Button variant="outline" onClick={() => handleExportCSV(false)}>Export CSV</Button>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".csv,text/csv,.xlsx,.xls"
+              onChange={handleImportFile}
+              disabled={isImporting}
+              className="hidden"
+            />
+            <Button variant="outline" onClick={() => import('@/lib/demo_template').then(m => m.downloadDemoCSVTemplate())}>
+              Download Template
+            </Button>
+
+            <Button
+              variant="outline"
+              disabled={isImporting}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {isImporting ? 'Importing...' : 'Import'}
+            </Button>
+
+            <Button variant="outline" onClick={handleExportCSV}>Export CSV</Button>
           </div>
         )}
       </div>
@@ -492,29 +811,63 @@ export function LeadsPage({ category, title }: Props) {
           </select>
         </div>
 
+        {/* Loan Type Dropdown removed in favor of tabs for Website Leads, but kept for others or mobile if needed. 
+            Actually, let's keep it as specific filter or rely on tabs. 
+            User want "within table" list. Tabs are better UI for this.
+        */}
         <div>
-          <select value={loanTypeFilter} onChange={(e) => setLoanTypeFilter(e.target.value)} className="w-full border rounded px-3 py-2">
-            <option value="All">All Loan Types</option>
-            <option value="Website Leads">Website Leads</option>
-            <option value="Home Loan">Home Loan</option>
-            <option value="Personal Loan">Personal Loan</option>
-            <option value="Business Loan">Business Loan</option>
-            <option value="Education Loan">Education Loan</option>
-            <option value="Car Loan">Car Loan</option>
-            <option value="Gold Loan">Gold Loan</option>
-            <option value="Loan against Property">Loan against Property</option>
-            <option value="Credit Cards">Credit Cards</option>
-          </select>
-        </div>
-
-        <div>
+          {/* Fallback or secondary filter */}
           <select value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)} className="w-full border rounded px-3 py-2">
             <option value="All">All Sources</option>
             <option value="Website Leads">Website Leads</option>
             {category !== 'all' && <option value="Manual Entry">Manual Entry</option>}
           </select>
         </div>
+
+        <div>
+          <select value={updatedByFilter} onChange={(e) => setUpdatedByFilter(e.target.value)} className="w-full border rounded px-3 py-2">
+            <option value="All">Updated By (All)</option>
+            {Array.from(new Set(leads.map(l => l.data?.updatedBy).filter(Boolean))).map((email: any) => (
+              <option key={email} value={email}>{email}</option>
+            ))}
+          </select>
+        </div>
       </div>
+
+      {effectiveCategory === 'all' && (
+        <div className="mb-6 overflow-x-auto pb-2">
+          <div className="flex space-x-2">
+            {[
+              'All',
+              'Home Loan',
+              'Personal Loan',
+              'Business Loan',
+              'Education Loan',
+              'Car Loan',
+              'Gold Loan',
+              'Loan against Property',
+              'Credit Cards'
+            ].map(type => {
+              const count = type === 'All'
+                ? displayedLeads.length
+                : displayedLeads.filter(l => l.data?.loanType === type).length;
+
+              return (
+                <button
+                  key={type}
+                  onClick={() => { setLoanTypeFilter(type === 'All' ? 'All' : type); setPage(1); }}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${(loanTypeFilter === type || (loanTypeFilter === 'All' && type === 'All'))
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                >
+                  {type} ({count})
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="text-sm text-gray-600 mb-4">Showing {(page - 1) * pageSize + 1} - {Math.min(page * pageSize, totalItems)} of {totalItems} leads</div>
 
@@ -592,6 +945,24 @@ export function LeadsPage({ category, title }: Props) {
       {selectedLead && (
         <LeadDetailsDialog lead={selectedLead} onClose={() => setSelectedLead(null)} onUpdate={handleUpdateLead} />
       )}
+
+
+      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+        <div className="p-6">
+          <h3 className="text-lg font-bold mb-4">Export Options</h3>
+          <p className="mb-6 text-gray-600">Choose which leads you want to export:</p>
+          <div className="space-y-3">
+            <Button className="w-full justify-start text-left" onClick={() => handleExportChoice('all')}>
+              <span className="font-semibold mr-2">Export All Leads</span>
+              <span className="text-xs text-gray-500">({sortedDisplayedLeads.length} leads - Current Category)</span>
+            </Button>
+            <Button variant="outline" className="w-full justify-start text-left" onClick={() => handleExportChoice('page')}>
+              <span className="font-semibold mr-2">Export Current Page</span>
+              <span className="text-xs text-gray-500">({pagedLeads.length} leads - Visible on screen)</span>
+            </Button>
+          </div>
+        </div>
+      </Dialog>
 
       <AddLeadDialog open={showAddDialog} onClose={() => setShowAddDialog(false)} onAdd={handleAddLead} />
     </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { importLeadsFromCSV } from '@/lib/storage';
+import { importLeadsFromCSV } from '@/lib/leads';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 
 export function AdminImportLeads() {
@@ -67,13 +67,13 @@ export function AdminImportLeads() {
     reader.readAsText(f);
   };
 
-  const handleImport = () => {
+  const handleImport = async () => {
     if (!fileText) {
       alert('Please select a CSV file first.');
       return;
     }
 
-    const count = importLeadsFromCSV(fileText);
+    const count = await importLeadsFromCSV(fileText);
     alert(`${count} leads imported successfully.`);
     navigate('/admin/leads');
   };

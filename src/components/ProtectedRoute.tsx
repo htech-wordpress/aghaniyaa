@@ -1,65 +1,44 @@
 import { Navigate } from 'react-router-dom';
-import { isAdminAuthenticated } from '@/lib/storage';
-import { getFirebaseAuth, onAuthChange, isAdminUser } from '@/lib/firebase';
 import { useEffect, useState } from 'react';
+import { onAuthChange, isAdminUser } from '@/lib/firebase';
+import { RefreshCw } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const [checking, setChecking] = useState(true);
-  const [authed, setAuthed] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    // Legacy local session check
-    if (isAdminAuthenticated()) {
-      setAuthed(true);
-      setChecking(false);
-      return;
-    }
-
-    const auth = getFirebaseAuth();
-    if (!auth) {
-      setAuthed(false);
-      setChecking(false);
-      return;
-    }
-
-    let cancelled = false;
-    const unsub = onAuthChange(async (user) => {
+    const unsubscribe = onAuthChange(async (user) => {
       if (!user) {
-        if (!cancelled) {
-          setAuthed(false);
-          setChecking(false);
-        }
+        setAuthorized(false);
+        setLoading(false);
         return;
       }
 
-      try {
-        const isAdmin = await isAdminUser(user);
-        if (!cancelled) {
-          setAuthed(!!isAdmin);
-          setChecking(false);
-        }
-      } catch (e) {
-        console.warn('Error checking admin user', e);
-        if (!cancelled) {
-          setAuthed(false);
-          setChecking(false);
-        }
-      }
+      const isAd = await isAdminUser(user);
+      setAuthorized(isAd);
+      setLoading(false);
     });
 
-    return () => {
-      cancelled = true;
-      unsub && unsub();
-    };
+    return () => unsubscribe();
   }, []);
 
-  if (checking) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-gray-500">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
 
-  if (!authed) {
+  if (!authorized) {
     return <Navigate to="/admin/login" replace />;
   }
 

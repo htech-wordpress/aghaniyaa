@@ -18,8 +18,6 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        pill: "bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-10 py-3 text-lg font-semibold shadow-md min-w-[170px] md:min-w-[240px] transform-gpu transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-xl",
-        "pill-outline": "bg-white text-primary border border-white/20 hover:bg-white/90 rounded-full px-10 py-3 text-lg font-semibold shadow-sm min-w-[170px] md:min-w-[240px] transform-gpu transition-transform duration-300 ease-out hover:-translate-y-0.5"
       },
       size: {
         default: "h-10 px-4 py-2",

@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { subscribeToLeads } from '@/lib/storage';
+import { subscribeToLeads } from '@/lib/leads';
 import type { Lead } from '@/lib/storage';
 
 function StatCard({ title, value, onClick }: { title: string; value: string | number; onClick?: () => void }) {
