@@ -1,0 +1,13 @@
+{
+  "name": "aghaniya-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm --prefix aghaniya-user run build && npm --prefix aghaniya-admin run build",
+    "build:user": "npm --prefix aghaniya-user run build",
+    "build:admin": "npm --prefix aghaniya-admin run build",
+    "deploy:user": "firebase deploy --project aghaniya --only hosting:aghaniyaenterprises",
+    "deploy:admin": "firebase deploy --project aghaniya --only hosting:aghaniya",
+    "deploy:all": "firebase deploy --project aghaniya --only hosting"
+  }
+}

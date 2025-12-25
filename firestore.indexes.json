@@ -1,0 +1,33 @@
+{
+    "indexes": [
+        {
+            "collectionGroup": "leads",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "category",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "timestamp",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "leads",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "assignedTo",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        }
+    ],
+    "fieldOverrides": []
+}
