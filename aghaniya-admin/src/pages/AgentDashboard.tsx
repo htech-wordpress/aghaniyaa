@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAgent } from '@/contexts/AgentContext';
-import { getFirestoreInstance } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { getDatabaseInstance } from '@/lib/firebase';
+import { ref, query, orderByChild, equalTo, get } from 'firebase/database';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardTitle, CardHeader, CardDescription } from '@/components/ui/card';
 import { Loader2, TrendingUp, Calendar, Clock, BarChart3, PieChart as PieIcon, Activity } from 'lucide-react';
@@ -26,6 +26,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'
 
 export function AgentDashboard() {
     const { currentAgent } = useAgent();
+    // Start with minimal stats or 0 to update later
     const [stats, setStats] = useState({ daily: 0, weekly: 0, monthly: 0, total: 0 });
     const [chartData, setChartData] = useState<{
         trend: any[];
@@ -42,13 +43,17 @@ export function AgentDashboard() {
     const loadStats = async () => {
         if (!currentAgent?.id) return;
 
-        const firestore = getFirestoreInstance();
-        if (!firestore) return;
+        const db = getDatabaseInstance();
+        if (!db) {
+            setLoading(false);
+            return;
+        }
 
         try {
-            const leadsRef = collection(firestore, 'leads');
-            const q = query(leadsRef, where('assignedTo', '==', currentAgent.id));
-            const snapshot = await getDocs(q);
+            const leadsRef = ref(db, 'leads');
+            // Query leads assigned to the current agent
+            const q = query(leadsRef, orderByChild('assignedTo'), equalTo(currentAgent.id));
+            const snapshot = await get(q);
 
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -75,8 +80,10 @@ export function AgentDashboard() {
                 dateCounts[dateKey] = 0;
             }
 
-            snapshot.forEach(doc => {
-                const data = doc.data();
+            let total = 0;
+            snapshot.forEach(childSnap => {
+                const data = childSnap.val();
+                total++;
                 const createdVal = data.createdAt || data.timestamp;
                 if (!createdVal) return;
 
@@ -123,7 +130,7 @@ export function AgentDashboard() {
                 daily,
                 weekly,
                 monthly,
-                total: snapshot.size
+                total: total
             });
 
             setChartData({

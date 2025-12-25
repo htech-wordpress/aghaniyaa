@@ -17,6 +17,7 @@ import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { Careers } from './pages/Careers';
 import { CertificatesAwards } from '@/pages/CertificatesAwards';
 import { Media } from '@/pages/Media';
+import { Partners } from '@/pages/Partners';
 
 function App() {
   // Get base path from Vite config
@@ -42,6 +43,7 @@ function App() {
             <Route path="/testimonials" element={<Testimonials />} />
             <Route path="/certificates-awards" element={<CertificatesAwards />} />
             <Route path="/media" element={<Media />} />
+            <Route path="/partners" element={<Partners />} />
           </Routes>
         </main>
         <Footer />

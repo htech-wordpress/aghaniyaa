@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardTitle, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { getFirestoreInstance } from '@/lib/firebase';
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { getDatabaseInstance } from '@/lib/firebase';
+import { ref, query, orderByChild, limitToLast, get } from 'firebase/database';
 import type { Lead, LeadCategory } from '@/lib/storage';
 import { updateLeadAsync } from '@/lib/leads';
 import { Loader2, Home, Briefcase, Building2, GraduationCap, Car, Gem, Landmark, CreditCard, FileSearch, Mail } from 'lucide-react';
@@ -31,19 +31,20 @@ export function AdminDashboard() {
   const [loadingStats, setLoadingStats] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
-
-
   const fetchRecent = async () => {
-    const db = getFirestoreInstance();
+    const db = getDatabaseInstance();
     if (!db) return;
     try {
-      const q = query(collection(db, 'leads'), orderBy('timestamp', 'desc'), limit(5));
-      const snap = await getDocs(q);
-      const leads = snap.docs.map(doc => {
-        const d = doc.data();
-        return { id: doc.id, category: d.category, timestamp: d.timestamp, data: d.data } as Lead;
+      // Get last 5 by timestamp (which are the newest)
+      const q = query(ref(db, 'leads'), orderByChild('timestamp'), limitToLast(5));
+      const snap = await get(q);
+      const leads: Lead[] = [];
+      snap.forEach(childSnap => {
+        const d = childSnap.val();
+        leads.push({ id: childSnap.key!, category: d.category, timestamp: d.timestamp, data: d.data });
       });
-      setRecentLeads(leads);
+      // Reverse to show newest first
+      setRecentLeads(leads.reverse());
     } catch (err) {
       console.error("Error fetching recent leads:", err);
     } finally {
@@ -62,7 +63,7 @@ export function AdminDashboard() {
   };
 
   useEffect(() => {
-    const db = getFirestoreInstance();
+    const db = getDatabaseInstance();
     if (!db) return;
 
     // 1. Fetch Recent Leads (Fast)
@@ -73,17 +74,21 @@ export function AdminDashboard() {
       try {
         // We fetch all documents to count them. 
         // Note: For very large datasets (10k+), this should be replaced with server-side aggregation or distributed counters.
-        const q = query(collection(db, 'leads'));
-        const snap = await getDocs(q);
+        const leadsRef = ref(db, 'leads');
+        const snap = await get(leadsRef);
 
         const counts: Record<string, number> = {};
-        snap.forEach(doc => {
-          const cat = doc.data().category as string || 'other';
+        let total = 0;
+
+        snap.forEach(childSnap => {
+          total++;
+          const val = childSnap.val();
+          const cat = val.category as string || 'other';
           counts[cat] = (counts[cat] || 0) + 1;
         });
 
         setStats({
-          total: snap.size,
+          total,
           counts
         });
       } catch (err) {

@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useAgent } from '@/contexts/AgentContext';
-import { getFirestoreInstance } from '@/lib/firebase';
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, orderBy } from 'firebase/firestore';
+import { getDatabaseInstance } from '@/lib/firebase';
+import { ref, query, orderByChild, equalTo, get, push, update, child } from 'firebase/database';
 import { Plus, Ban, Upload, Download } from 'lucide-react';
 import { LeadDetailsDialog } from '@/components/admin/LeadDetailsDialog';
 import type { Lead, LeadCategory } from '@/lib/storage';
@@ -42,30 +42,30 @@ export function AgentSelfLeads() {
         if (!currentAgent) return;
 
         setLoading(true);
-        const firestore = getFirestoreInstance();
-        if (!firestore) {
+        const db = getDatabaseInstance();
+        if (!db) {
             setLoading(false);
             return;
         }
 
         try {
-            const leadsRef = collection(firestore, 'leads');
+            const leadsRef = ref(db, 'leads');
             const q = query(
                 leadsRef,
-                where('assignedTo', '==', currentAgent.id),
-                orderBy('createdAt', 'desc')
+                orderByChild('assignedTo'),
+                equalTo(currentAgent.id)
             );
-            const snapshot = await getDocs(q);
+            const snapshot = await get(q);
             const leadsList: Lead[] = [];
 
-            snapshot.forEach((doc) => {
-                const d = doc.data();
+            snapshot.forEach((childSnap) => {
+                const d = childSnap.val();
                 if (d.data) {
-                    leadsList.push({ id: doc.id, category: d.category, timestamp: d.timestamp, data: d.data } as Lead);
+                    leadsList.push({ id: childSnap.key!, category: d.category, timestamp: d.timestamp, data: d.data } as Lead);
                 } else {
                     const category = (d.loanType || d.category || 'contact') as LeadCategory;
                     leadsList.push({
-                        id: doc.id,
+                        id: childSnap.key!,
                         category: category,
                         timestamp: d.createdAt || new Date().toISOString(),
                         data: {
@@ -80,6 +80,13 @@ export function AgentSelfLeads() {
                         }
                     });
                 }
+            });
+
+            // Client-side sort by timestamp descending
+            leadsList.sort((a, b) => {
+                const tA = new Date(a.timestamp || 0).getTime();
+                const tB = new Date(b.timestamp || 0).getTime();
+                return tB - tA;
             });
 
             setLeads(leadsList);
@@ -103,8 +110,8 @@ export function AgentSelfLeads() {
             return;
         }
 
-        const firestore = getFirestoreInstance();
-        if (!firestore || !currentAgent) return;
+        const db = getDatabaseInstance();
+        if (!db || !currentAgent) return;
 
         const timestamp = new Date().toISOString();
         const leadData = {
@@ -124,7 +131,8 @@ export function AgentSelfLeads() {
             pipeline: [{ status: data.status, date: timestamp, comment: 'Lead created by agent', updatedBy: currentAgent.email }]
         };
 
-        await addDoc(collection(firestore, 'leads'), {
+        const leadsRef = ref(db, 'leads');
+        await push(leadsRef, {
             category: (data.loanType as LeadCategory) || 'contact',
             timestamp: timestamp,
             createdAt: timestamp,
@@ -132,6 +140,8 @@ export function AgentSelfLeads() {
             assignedToAgentId: currentAgent.agentId,
             data: leadData
         });
+
+        loadLeads();
     };
 
     const handleDownloadSample = () => {
@@ -183,7 +193,7 @@ export function AgentSelfLeads() {
             }
 
             let successCount = 0;
-            // Process sequentially to avoid overwhelming Firestore (optional: use batch if robust)
+            // Process sequentially
             for (const row of jsonData as any[]) {
                 const leadInput = {
                     name: row['Full Name'] || row['Name'] || '',
@@ -216,12 +226,12 @@ export function AgentSelfLeads() {
     };
 
     const handleComplexUpdate = async (updatedLead: Lead) => {
-        const firestore = getFirestoreInstance();
-        if (!firestore) return;
+        const db = getDatabaseInstance();
+        if (!db) return;
 
         setLoading(true);
         try {
-            await updateDoc(doc(firestore, 'leads', updatedLead.id), {
+            await update(child(ref(db, 'leads'), updatedLead.id), {
                 category: updatedLead.category,
                 data: updatedLead.data,
                 updatedAt: new Date().toISOString()
@@ -240,8 +250,8 @@ export function AgentSelfLeads() {
     const handleReject = async (leadId: string, leadName: string, currentData: any) => {
         if (!confirm(`Are you sure you want to REJECT the lead for ${leadName}?`)) return;
 
-        const firestore = getFirestoreInstance();
-        if (!firestore || !currentAgent) return;
+        const db = getDatabaseInstance();
+        if (!db || !currentAgent) return;
 
         setLoading(true);
         try {
@@ -252,11 +262,17 @@ export function AgentSelfLeads() {
                 { status: 'Rejected', date: timestamp, comment: 'Rejected by agent', updatedBy: currentAgent.email }
             ];
 
-            await updateDoc(doc(firestore, 'leads', leadId), {
-                'data.status': 'Rejected',
-                'data.pipeline': newPipeline,
+            // We need to update specific fields in the data object.
+            // In RTDB, nested updates are tricky if not careful with paths.
+            // We can update "data/status" and "data/pipeline".
+            const updates = {
+                [`data/status`]: 'Rejected',
+                [`data/pipeline`]: newPipeline,
                 updatedAt: timestamp
-            });
+            };
+
+            await update(child(ref(db, 'leads'), leadId), updates);
+
             alert('Lead rejected successfully!');
             loadLeads();
         } catch (error) {

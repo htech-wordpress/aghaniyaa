@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
-import { isSuperUser, getFirestoreInstance } from '@/lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { isSuperUser, getDatabaseInstance } from '@/lib/firebase';
+import { ref, get, set, child } from 'firebase/database';
 import { ShieldAlert, CreditCard, Mail, Building2, Save, RefreshCw, Settings2 } from 'lucide-react';
 
 interface PaymentSettings {
@@ -92,100 +92,60 @@ export function AdminSuperAdminSettings() {
     };
 
     const loadSettings = async () => {
-        const firestore = getFirestoreInstance();
-        if (!firestore) {
-            console.error('Firestore not initialized');
+        const db = getDatabaseInstance();
+        if (!db) {
+            console.error('Database not initialized');
             return;
         }
 
         try {
             // Load Payment Settings
-            const paymentDoc = await getDoc(doc(firestore, 'settings', 'payment'));
-            if (paymentDoc.exists()) {
-                setPaymentSettings(paymentDoc.data() as PaymentSettings);
+            const paymentSnap = await get(child(ref(db), 'settings/payment'));
+            if (paymentSnap.exists()) {
+                setPaymentSettings(paymentSnap.val() as PaymentSettings);
             }
 
             // Load Email Settings
-            const emailDoc = await getDoc(doc(firestore, 'settings', 'email'));
-            if (emailDoc.exists()) {
-                setEmailSettings(emailDoc.data() as EmailSettings);
+            const emailSnap = await get(child(ref(db), 'settings/email'));
+            if (emailSnap.exists()) {
+                setEmailSettings(emailSnap.val() as EmailSettings);
             }
 
             // Load Company Settings
-            const companyDoc = await getDoc(doc(firestore, 'settings', 'company'));
-            if (companyDoc.exists()) {
-                setCompanySettings(companyDoc.data() as CompanySettings);
+            const companySnap = await get(child(ref(db), 'settings/company'));
+            if (companySnap.exists()) {
+                setCompanySettings(companySnap.val() as CompanySettings);
             }
 
             // Load System Settings
-            const systemDoc = await getDoc(doc(firestore, 'settings', 'system'));
-            if (systemDoc.exists()) {
-                setSystemSettings(systemDoc.data() as SystemSettings);
+            const systemSnap = await get(child(ref(db), 'settings/system'));
+            if (systemSnap.exists()) {
+                setSystemSettings(systemSnap.val() as SystemSettings);
             }
         } catch (error) {
             console.error('Error loading settings:', error);
         }
     };
 
-    const savePaymentSettings = async () => {
-        const firestore = getFirestoreInstance();
-        if (!firestore) return;
+    const saveSetting = async (path: string, data: any, name: string) => {
+        const db = getDatabaseInstance();
+        if (!db) return;
         setSaving(true);
         try {
-            await setDoc(doc(firestore, 'settings', 'payment'), paymentSettings);
-            alert('Payment settings saved successfully!');
+            await set(child(ref(db), path), data);
+            alert(`${name} settings saved successfully!`);
         } catch (error) {
-            console.error('Error saving payment settings:', error);
-            alert('Failed to save payment settings');
+            console.error(`Error saving ${name} settings:`, error);
+            alert(`Failed to save ${name} settings`);
         } finally {
             setSaving(false);
         }
     };
 
-    const saveEmailSettings = async () => {
-        const firestore = getFirestoreInstance();
-        if (!firestore) return;
-        setSaving(true);
-        try {
-            await setDoc(doc(firestore, 'settings', 'email'), emailSettings);
-            alert('Email settings saved successfully!');
-        } catch (error) {
-            console.error('Error saving email settings:', error);
-            alert('Failed to save email settings');
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const saveCompanySettings = async () => {
-        const firestore = getFirestoreInstance();
-        if (!firestore) return;
-        setSaving(true);
-        try {
-            await setDoc(doc(firestore, 'settings', 'company'), companySettings);
-            alert('Company settings saved successfully!');
-        } catch (error) {
-            console.error('Error saving company settings:', error);
-            alert('Failed to save company settings');
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const saveSystemSettings = async () => {
-        const firestore = getFirestoreInstance();
-        if (!firestore) return;
-        setSaving(true);
-        try {
-            await setDoc(doc(firestore, 'settings', 'system'), systemSettings);
-            alert('System settings saved successfully!');
-        } catch (error) {
-            console.error('Error saving system settings:', error);
-            alert('Failed to save system settings');
-        } finally {
-            setSaving(false);
-        }
-    };
+    const savePaymentSettings = () => saveSetting('settings/payment', paymentSettings, 'Payment');
+    const saveEmailSettings = () => saveSetting('settings/email', emailSettings, 'Email');
+    const saveCompanySettings = () => saveSetting('settings/company', companySettings, 'Company');
+    const saveSystemSettings = () => saveSetting('settings/system', systemSettings, 'System');
 
     if (loading) {
         return (
@@ -214,7 +174,7 @@ export function AdminSuperAdminSettings() {
             <div className="space-y-6">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">SuperAdmin Settings</h1>
-                    <p className="text-gray-600 mt-1">Configure global application settings</p>
+                    <p className="text-gray-600 mt-1">Configure global application settings (Realtime DB)</p>
                 </div>
 
                 <Tabs defaultValue="system" className="w-full">
@@ -274,7 +234,6 @@ export function AdminSuperAdminSettings() {
                                         />
                                         <p className="text-sm text-gray-500 mt-1">
                                             Admins will not be able to create more than this number of agent users.
-                                            This limit helps control subscription costs and system resources.
                                         </p>
                                     </div>
                                 </div>
@@ -317,7 +276,6 @@ export function AdminSuperAdminSettings() {
                                             value={paymentSettings.razorpayKeyId}
                                             onChange={(e) => setPaymentSettings({ ...paymentSettings, razorpayKeyId: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="rzp_live_xxxxxxxxxxxxx"
                                         />
                                     </div>
 
@@ -329,7 +287,6 @@ export function AdminSuperAdminSettings() {
                                             value={paymentSettings.razorpayKeySecret}
                                             onChange={(e) => setPaymentSettings({ ...paymentSettings, razorpayKeySecret: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="••••••••••••••••"
                                         />
                                     </div>
                                 </div>
@@ -372,7 +329,6 @@ export function AdminSuperAdminSettings() {
                                             value={emailSettings.smtpHost}
                                             onChange={(e) => setEmailSettings({ ...emailSettings, smtpHost: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="smtp.gmail.com"
                                         />
                                     </div>
 
@@ -384,7 +340,6 @@ export function AdminSuperAdminSettings() {
                                             value={emailSettings.smtpPort}
                                             onChange={(e) => setEmailSettings({ ...emailSettings, smtpPort: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="587"
                                         />
                                     </div>
 
@@ -396,7 +351,6 @@ export function AdminSuperAdminSettings() {
                                             value={emailSettings.smtpUser}
                                             onChange={(e) => setEmailSettings({ ...emailSettings, smtpUser: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="your-email@gmail.com"
                                         />
                                     </div>
 
@@ -408,7 +362,6 @@ export function AdminSuperAdminSettings() {
                                             value={emailSettings.smtpPassword}
                                             onChange={(e) => setEmailSettings({ ...emailSettings, smtpPassword: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="••••••••••••••••"
                                         />
                                     </div>
 
@@ -420,7 +373,6 @@ export function AdminSuperAdminSettings() {
                                             value={emailSettings.fromEmail}
                                             onChange={(e) => setEmailSettings({ ...emailSettings, fromEmail: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="noreply@aghaniya.com"
                                         />
                                     </div>
 
@@ -432,7 +384,6 @@ export function AdminSuperAdminSettings() {
                                             value={emailSettings.fromName}
                                             onChange={(e) => setEmailSettings({ ...emailSettings, fromName: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Aghaniya"
                                         />
                                     </div>
                                 </div>
@@ -464,7 +415,6 @@ export function AdminSuperAdminSettings() {
                                             value={companySettings.companyName}
                                             onChange={(e) => setCompanySettings({ ...companySettings, companyName: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Aghaniya"
                                         />
                                     </div>
 
@@ -476,7 +426,6 @@ export function AdminSuperAdminSettings() {
                                             value={companySettings.companyLogo}
                                             onChange={(e) => setCompanySettings({ ...companySettings, companyLogo: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="https://example.com/logo.png"
                                         />
                                     </div>
 
@@ -488,7 +437,6 @@ export function AdminSuperAdminSettings() {
                                             value={companySettings.companyEmail}
                                             onChange={(e) => setCompanySettings({ ...companySettings, companyEmail: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="contact@aghaniya.com"
                                         />
                                     </div>
 
@@ -500,7 +448,6 @@ export function AdminSuperAdminSettings() {
                                             value={companySettings.companyPhone}
                                             onChange={(e) => setCompanySettings({ ...companySettings, companyPhone: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="+91 1234567890"
                                         />
                                     </div>
 
@@ -512,7 +459,6 @@ export function AdminSuperAdminSettings() {
                                             value={companySettings.website}
                                             onChange={(e) => setCompanySettings({ ...companySettings, website: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="https://aghaniya.com"
                                         />
                                     </div>
 
@@ -523,7 +469,6 @@ export function AdminSuperAdminSettings() {
                                             value={companySettings.companyAddress}
                                             onChange={(e) => setCompanySettings({ ...companySettings, companyAddress: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="123 Business Street, City, State, PIN"
                                             rows={3}
                                         />
                                     </div>

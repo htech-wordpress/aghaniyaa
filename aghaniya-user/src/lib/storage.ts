@@ -1,23 +1,11 @@
 // Lead types
-export type LeadCategory =
-  | 'home-loan'
-  | 'personal-loan'
-  | 'business-loan'
-  | 'education-loan'
-  | 'car-loan'
-  | 'gold-loan'
-  | 'loan-against-property'
-  // | 'credit-card'
-  | 'cibil-check'
-  | 'contact'
-  | 'careers'
-  | 'becomedsa';
+export type LeadCategory = string;
 
 export interface Lead {
   id: string;
   category: LeadCategory;
   timestamp: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }
 
 export interface LeadDocument {

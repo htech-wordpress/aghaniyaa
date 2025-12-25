@@ -10,15 +10,15 @@ interface ScrollAnimationProps {
   className?: string;
 }
 
-export function ScrollAnimation({ 
-  children, 
-  direction = 'up', 
+export function ScrollAnimation({
+  children,
+  direction = 'up',
   delay = 0,
   duration = 0.6,
   className = ''
 }: ScrollAnimationProps) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: false, amount: 0.2 });
+  const isInView = useInView(ref, { once: true, amount: 0.1 });
 
   const getInitialState = () => {
     switch (direction) {

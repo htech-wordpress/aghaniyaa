@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAgent } from '@/contexts/AgentContext';
-import { getFirestoreInstance } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { getDatabaseInstance } from '@/lib/firebase';
+import { ref, query, orderByChild, equalTo, get } from 'firebase/database';
 import { Users, TrendingUp, CheckCircle, Clock, User } from 'lucide-react';
 
 interface TeamMember {
@@ -38,99 +38,104 @@ export function ManagerTeamDashboard() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const loadTeamData = async () => {
+            if (!currentAgent) return;
+
+            setLoading(true);
+            const db = getDatabaseInstance();
+            if (!db) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                // Load team members (agents reporting to this manager)
+                const agentsRef = ref(db, 'agents');
+                // Realtime DB limitation: can only sort/filter by one property.
+                // We filter by managerId, then filter status in memory.
+                const q = query(
+                    agentsRef,
+                    orderByChild('managerId'),
+                    equalTo(currentAgent.id)
+                );
+                const snapshot = await get(q);
+                const teamMembers: TeamMember[] = [];
+
+                snapshot.forEach((childSnap) => {
+                    const data = childSnap.val();
+                    if (data.status === 'active') {
+                        teamMembers.push({ id: childSnap.key!, ...data } as TeamMember);
+                    }
+                });
+
+                // Load leads for each team member
+                const leadsRef = ref(db, 'leads');
+                const statsPromises = teamMembers.map(async (member) => {
+                    const memberLeadsQuery = query(
+                        leadsRef,
+                        orderByChild('assignedTo'),
+                        equalTo(member.id)
+                    );
+                    const leadsSnapshot = await get(memberLeadsQuery);
+
+                    const stats: LeadStats = {
+                        total: 0,
+                        today: 0,
+                        new: 0,
+                        contacted: 0,
+                        inProgress: 0,
+                        approved: 0,
+                        rejected: 0,
+                    };
+
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    leadsSnapshot.forEach((leadSnap) => {
+                        const rawData = leadSnap.val();
+                        // Handle both nested 'data' structure and legacy flat structure
+                        const leadDetails = rawData.data || rawData;
+
+                        stats.total++;
+
+                        // Check if created today
+                        const createdAtStr = rawData.createdAt || rawData.timestamp || leadDetails.timestamp;
+                        if (createdAtStr) {
+                            const createdAt = new Date(createdAtStr);
+                            if (createdAt >= today) {
+                                stats.today++;
+                            }
+                        }
+
+                        // Count by status
+                        const status = (leadDetails.status || 'new').toLowerCase();
+                        if (status === 'new') stats.new++;
+                        else if (status === 'contacted') stats.contacted++;
+                        else if (status === 'in-progress' || status === 'in progress') stats.inProgress++;
+                        else if (status === 'approved') stats.approved++;
+                        else if (status === 'rejected') stats.rejected++;
+                    });
+
+                    return {
+                        agent: member,
+                        stats,
+                    };
+                });
+
+                const allStats = await Promise.all(statsPromises);
+                setTeamStats(allStats);
+            } catch (error) {
+                console.error('Error loading team data:', error);
+                alert('Failed to load team data');
+            } finally {
+                setLoading(false);
+            }
+        };
+
         if (currentAgent && currentAgent.role === 'manager') {
             loadTeamData();
         }
     }, [currentAgent]);
-
-    const loadTeamData = async () => {
-        if (!currentAgent) return;
-
-        setLoading(true);
-        const firestore = getFirestoreInstance();
-        if (!firestore) {
-            setLoading(false);
-            return;
-        }
-
-        try {
-            // Load team members (agents reporting to this manager)
-            const agentsRef = collection(firestore, 'agents');
-            const q = query(
-                agentsRef,
-                where('managerId', '==', currentAgent.id),
-                where('status', '==', 'active')
-            );
-            const snapshot = await getDocs(q);
-            const teamMembers: TeamMember[] = [];
-
-            snapshot.forEach((doc) => {
-                teamMembers.push({ id: doc.id, ...doc.data() } as TeamMember);
-            });
-
-            // Load leads for each team member
-            const leadsRef = collection(firestore, 'leads');
-            const statsPromises = teamMembers.map(async (member) => {
-                const memberLeadsQuery = query(
-                    leadsRef,
-                    where('assignedTo', '==', member.id)
-                );
-                const leadsSnapshot = await getDocs(memberLeadsQuery);
-
-                const stats: LeadStats = {
-                    total: 0,
-                    today: 0,
-                    new: 0,
-                    contacted: 0,
-                    inProgress: 0,
-                    approved: 0,
-                    rejected: 0,
-                };
-
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                leadsSnapshot.forEach((leadDoc) => {
-                    const rawData = leadDoc.data();
-                    // Handle both nested 'data' structure and legacy flat structure
-                    const leadDetails = rawData.data || rawData;
-
-                    stats.total++;
-
-                    // Check if created today
-                    // created at is usually at root in both new and old (added for indexing), but fallback to data just in case
-                    const createdAtStr = rawData.createdAt || rawData.timestamp || leadDetails.timestamp;
-                    if (createdAtStr) {
-                        const createdAt = new Date(createdAtStr);
-                        if (createdAt >= today) {
-                            stats.today++;
-                        }
-                    }
-
-                    // Count by status
-                    const status = (leadDetails.status || 'new').toLowerCase();
-                    if (status === 'new') stats.new++;
-                    else if (status === 'contacted') stats.contacted++;
-                    else if (status === 'in-progress' || status === 'in progress') stats.inProgress++;
-                    else if (status === 'approved') stats.approved++;
-                    else if (status === 'rejected') stats.rejected++;
-                });
-
-                return {
-                    agent: member,
-                    stats,
-                };
-            });
-
-            const allStats = await Promise.all(statsPromises);
-            setTeamStats(allStats);
-        } catch (error) {
-            console.error('Error loading team data:', error);
-            alert('Failed to load team data');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const getTotalTeamStats = (): LeadStats => {
         return teamStats.reduce(

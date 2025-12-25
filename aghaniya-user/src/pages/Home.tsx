@@ -5,116 +5,25 @@ import { ScrollAnimation } from '@/components/ScrollAnimation';
 import { TestimonialMarquee } from '@/components/TestimonialMarquee';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Home as HomeIcon, Building2, Briefcase, GraduationCap, Car, /* CreditCard, */ Gem, Landmark, MapPin, Trophy, Users, Gift, BookOpen, CheckCircle, Calculator } from 'lucide-react';
+import { Briefcase, MapPin, Trophy, Users, Gift, BookOpen, CheckCircle, Calculator } from 'lucide-react';
 
-const loanTypes = [
-  {
-    id: 'home-loan',
-    title: 'Home Loan',
-    description: 'Your Dream Home Awaits - Explore Our Range Of Home Loan Products.',
-    icon: HomeIcon,
-    link: '/loans/home-loan',
-  },
-  {
-    id: 'loan-against-property',
-    title: 'Loan against Property',
-    description: 'Unlock your property\'s value with tailored loan solutions.',
-    icon: Landmark,
-    link: '/loans/loan-against-property',
-  },
-  {
-    id: 'personal-loan',
-    title: 'Personal Loan',
-    description: 'Achieve your dreams with our versatile personal loan options.',
-    icon: Briefcase,
-    link: '/loans/personal-loan',
-  },
-  {
-    id: 'business-loan',
-    title: 'Business Loan',
-    description: 'Boost your business growth with our flexible financing options.',
-    icon: Building2,
-    link: '/loans/business-loan',
-  },
-  {
-    id: 'education-loan',
-    title: 'Education Loan',
-    description: 'Invest in your child\'s future with our specialized education loans.',
-    icon: GraduationCap,
-    link: '/loans/education-loan',
-  },
-  {
-    id: 'car-loan',
-    title: 'Car Loan',
-    description: 'Drive your dream car with our quick and flexible car loans.',
-    icon: Car,
-    link: '/loans/car-loan',
-  },
-  {
-    id: 'gold-loan',
-    title: 'Gold Loan',
-    description: 'Meet your financial needs with gold loans from trusted banks.',
-    icon: Gem,
-    link: '/loans/gold-loan',
-  },
-  /* {
-    id: 'credit-cards',
-    title: 'Credit Cards',
-    description: 'Upgrade your lifestyle with feature-packed, rewarding credit cards.',
-    icon: CreditCard,
-    link: '/credit-cards',
-  }, */
-];
+import { loanOptions } from '@/data/loanOptions';
+
+const displayedLoans = loanOptions.slice(0, 8); // Display first 8 loans
+
+
+import { partners as allPartners } from '@/data/partners';
+import { Building2 } from 'lucide-react';
 
 const stats = [
   { value: '10+', label: 'Years of Experience' },
-  { value: '25+', label: 'Financial Institution Partners' },
+  { value: `${allPartners.length}+`, label: 'Financial Institution Partners' },
   { value: '10+', label: 'Cities Through A Wide Branch Network' },
   { value: '₹1.4 Lakh Cr+', label: 'In Loans Disbursed' },
 ];
 
-const partners = [
-  {
-    name: 'Axis Bank',
-    logo: '/Assets/Axis Bank_idJBXQBHwi_1.png'
-  },
-  {
-    name: 'Bajaj Finserv',
-    logo: '/Assets/bajaj-loan-finance--aghaniyaenterprises.jpeg'
-  },
-  {
-    name: 'HDFC Bank',
-    logo: '/Assets/HDFC Bank_id6pGb_xHe_1.png'
-  },
-  {
-    name: 'SBI',
-    logo: '/Assets/State Bank of India_id95r1JSPJ_2.png'
-  },
-  {
-    name: 'Piramal Finance',
-    logo: '/Assets/Piramal Finance_idrE5R2BaP_0.png'
-  },
-  {
-    name: 'RBL Bank',
-    logo: '/Assets/rbl--aghaniyaenterprises.png'
-  },
-  {
-    name: 'ICICI Bank',
-    logo: '/Assets/ICICI Bank_id_NFCjbgj_1.png'
-  },
-  {
-    name: 'Kotak Bank',
-    logo: '/Assets/Kotak Mahindra Bank_idVNFKKm-u_0.svg'
-  },
-  {
-    name: 'Edelweiss',
-    logo: '/Assets/placeholder-img.svg'
-  },
-  {
-    name: 'SMFG India Credit',
-    logo: '/Assets/placeholder-img.svg'
-  },
-];
+const homePartners = allPartners.slice(0, 10);
+
 
 const advantages = [
   { title: "India's Leading Loans Distributor", icon: Trophy, image: 'https://images.unsplash.com/photo-1553484771-371a605b060b?w=300&h=300&fit=crop' },
@@ -153,20 +62,20 @@ export function Home() {
         </ScrollAnimation>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loanTypes.map((loan, index) => {
+          {displayedLoans.map((loan, index) => {
             const Icon = loan.icon;
             // Define hypothetical interest rates for demo purposes
             let interestRate = "10.50 % P.A*";
             if (loan.id === 'home-loan') interestRate = "8.50 % P.A*";
-            if (loan.id === 'loan-against-property') interestRate = "9.25 % P.A*";
+            if (loan.id === 'lap') interestRate = "9.25 % P.A*";
             if (loan.id === 'personal-loan') interestRate = "10.99 % P.A*";
             if (loan.id === 'business-loan') interestRate = "12.00 % P.A*";
-            if (loan.id === 'car-loan') interestRate = "8.75 % P.A*";
+            if (loan.id === 'auto-loan') interestRate = "8.75 % P.A*";
             if (loan.id === 'education-loan') interestRate = "9.50 % P.A*";
             if (loan.id === 'gold-loan') interestRate = "9.00 % P.A*";
 
             return (
-              <ScrollAnimation key={loan.id} direction="up" delay={index * 0.1} duration={0.5}>
+              <ScrollAnimation key={loan.id} direction="up" delay={(index % 3) * 0.1} duration={0.4}>
                 <Card className="hover:shadow-2xl transition-all duration-300 h-full border-slate-100 bg-white group hover:-translate-y-1 rounded-2xl overflow-hidden shadow-md">
                   <CardHeader className="flex flex-row items-start space-y-0 pb-2 gap-4">
                     <div className="h-14 w-14 shrink-0 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-md">
@@ -174,21 +83,22 @@ export function Home() {
                     </div>
                     <div>
                       <CardTitle className="text-xl font-bold text-slate-800 leading-tight mb-1">{loan.title}</CardTitle>
-                      <p className="text-sm text-slate-600 mb-2 leading-snug">{loan.description}</p>
-                      <p className="text-xs text-slate-500 font-medium">Lowest interest rates starting at just</p>
+                      <p className="text-sm text-slate-600 leading-snug line-clamp-2">{loan.description}</p>
                     </div>
                   </CardHeader>
-                  <CardContent className="pb-6">
-                    <div className="text-4xl font-extrabold text-slate-900 mb-6 tracking-tight">
-                      {interestRate}
-                    </div>
+                  <CardContent className="pt-4">
+                    {interestRate && (
+                      <div className="text-4xl font-extrabold text-slate-900 mb-6 tracking-tight">
+                        {interestRate}
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-3">
                       <a href="tel:+919876543210">
                         <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-sm rounded-lg">
                           <span className="mr-2">📞</span> Call Now
                         </Button>
                       </a>
-                      <Link to={loan.link}>
+                      <Link to={`/loans/${loan.id}`}>
                         <Button className="w-full bg-rose-900 hover:bg-rose-800 text-white font-semibold shadow-sm rounded-lg">
                           <span className="mr-2">🚀</span> Check Eligibility
                         </Button>
@@ -199,6 +109,22 @@ export function Home() {
               </ScrollAnimation>
             );
           })}
+
+          {/* View All Card */}
+          <ScrollAnimation direction="up" delay={0.1} duration={0.4}>
+            <Link to="/loans" className="block h-full">
+              <Card className="hover:shadow-2xl transition-all duration-300 h-full border-dashed border-2 border-slate-300 bg-slate-50 group hover:-translate-y-1 rounded-2xl overflow-hidden flex flex-col items-center justify-center min-h-[300px] cursor-pointer hover:border-primary/50 hover:bg-primary/5">
+                <div className="h-20 w-20 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center mb-6 shadow-sm group-hover:border-primary group-hover:scale-110 transition-all">
+                  <Briefcase className="h-8 w-8 text-slate-400 group-hover:text-primary transition-colors" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-700 group-hover:text-primary mb-2 transition-colors">View All Loans</h3>
+                <p className="text-slate-500 text-center max-w-[200px]">Explore 50+ loan products tailored for you</p>
+                <Button variant="link" className="mt-4 text-primary font-semibold group-hover:underline">
+                  Browse All Products &rarr;
+                </Button>
+              </Card>
+            </Link>
+          </ScrollAnimation>
         </div>
       </section>
 
@@ -252,36 +178,30 @@ export function Home() {
             </div>
           </ScrollAnimation>
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-8">
-            {partners.map((partner, index) => (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-8 mb-10">
+            {homePartners.map((partner, index) => (
               <ScrollAnimation key={index} direction="scale" delay={index * 0.05} duration={0.5}>
-                <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-center justify-center h-32 group">
-                  <img
-                    src={partner.logo}
-                    alt={partner.name}
-                    className="max-h-12 max-w-full object-contain transition-all duration-300 transform group-hover:scale-105"
-                    loading="lazy"
-                    crossOrigin="anonymous"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      if (!target.src.includes('placeholder-img.svg')) {
-                        target.src = '/Assets/placeholder-img.svg';
-                        return;
-                      }
-                      target.style.display = 'none';
-                      const parent = target.parentElement;
-                      if (parent && !parent.querySelector('.fallback-text')) {
-                        const span = document.createElement('span');
-                        span.className = 'fallback-text text-sm font-semibold text-slate-700 text-center';
-                        span.textContent = partner.name;
-                        parent.appendChild(span);
-                      }
-                    }}
-                  />
+                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center h-32 group text-center hover:-translate-y-1">
+                  <div className="h-10 w-10 mb-3 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-primary/5 transition-colors">
+                    <Building2 className="h-5 w-5 text-slate-400 group-hover:text-primary transition-colors" />
+                  </div>
+                  <span className="text-xs md:text-sm font-semibold text-slate-700 leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                    {partner.name}
+                  </span>
                 </div>
               </ScrollAnimation>
             ))}
           </div>
+
+          <ScrollAnimation direction="up" delay={0.4}>
+            <div className="text-center">
+              <Link to="/partners">
+                <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white transition-all px-8">
+                  View All {allPartners.length}+ Partners
+                </Button>
+              </Link>
+            </div>
+          </ScrollAnimation>
         </div>
       </section>
 

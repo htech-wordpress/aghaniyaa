@@ -4,8 +4,8 @@ import { useAgent } from '@/contexts/AgentContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { getFirestoreInstance } from '@/lib/firebase';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { getDatabaseInstance } from '@/lib/firebase';
+import { ref, get } from 'firebase/database';
 import { Users, TrendingUp, CheckCircle, Clock, User, Search, RefreshCw } from 'lucide-react';
 
 interface Agent {
@@ -56,27 +56,42 @@ export function AdminPerformanceDashboard() {
 
     const loadAllAgentsPerformance = async () => {
         setLoading(true);
-        const firestore = getFirestoreInstance();
-        if (!firestore) {
+        const db = getDatabaseInstance();
+        if (!db) {
             setLoading(false);
             return;
         }
 
         try {
-            // Load ALL agents (not filtered by manager)
-            const agentsRef = collection(firestore, 'agents');
-            const q = query(agentsRef, orderBy('name'));
-            const snapshot = await getDocs(q);
+            // 1. Load Agents
+            const agentsRef = ref(db, 'agents');
+            const agentsSnap = await get(agentsRef);
             const allAgents: Agent[] = [];
 
-            // Create a map to store manager names
+            // Create a map to store manager IDs -> Names
             const agentMap = new Map<string, string>();
 
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                allAgents.push({ id: doc.id, ...data } as Agent);
-                agentMap.set(doc.id, data.name);
+            agentsSnap.forEach((childSnap) => {
+                const data = childSnap.val();
+                allAgents.push({ id: childSnap.key!, ...data } as Agent);
+                agentMap.set(childSnap.key!, data.name);
             });
+
+            // Also load Admin Users (admins can store agent data or be managers)
+            // But usually performance is about Agents. If admins also take leads, they might be in adminUsers.
+            // For now, let's assume we performance track 'agents' node primarily. 
+            // If managers are in adminUsers, we might need their names.
+            const adminsRef = ref(db, 'adminUsers');
+            const adminsSnap = await get(adminsRef);
+            adminsSnap.forEach((childSnap) => {
+                const data = childSnap.val();
+                agentMap.set(childSnap.key!, data.name);
+                // We typically don't track admin performance in this specific dashboard unless they are in 'agents' list
+                // If the user wants admins here, they should be in the agents list or merged.
+            });
+
+            // Sort agents by name
+            allAgents.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
             // Add manager names to agents
             const agentsWithManagers = allAgents.map(agent => ({
@@ -84,16 +99,14 @@ export function AdminPerformanceDashboard() {
                 managerName: agent.managerId ? agentMap.get(agent.managerId) : undefined
             }));
 
-            // Load leads for each agent
-            const leadsRef = collection(firestore, 'leads');
-            const performancePromises = agentsWithManagers.map(async (agent) => {
-                const agentLeadsQuery = query(
-                    leadsRef,
-                    where('assignedTo', '==', agent.id)
-                );
-                const leadsSnapshot = await getDocs(agentLeadsQuery);
+            // 2. Load All Leads (for aggregation)
+            const leadsRef = ref(db, 'leads');
+            const leadsSnap = await get(leadsRef);
 
-                const stats: LeadStats = {
+            // Initialize stats map
+            const statsMap = new Map<string, LeadStats>();
+            agentsWithManagers.forEach(agent => {
+                statsMap.set(agent.id, {
                     total: 0,
                     today: 0,
                     new: 0,
@@ -101,39 +114,53 @@ export function AdminPerformanceDashboard() {
                     inProgress: 0,
                     approved: 0,
                     rejected: 0,
-                };
+                });
+            });
 
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-                leadsSnapshot.forEach((leadDoc) => {
-                    const lead = leadDoc.data();
+            // 3. Aggregate Stats
+            leadsSnap.forEach((childSnap) => {
+                const lead = childSnap.val();
+                const assignedTo = lead.assignedTo;
+
+                if (assignedTo && statsMap.has(assignedTo)) {
+                    const stats = statsMap.get(assignedTo)!;
                     stats.total++;
 
-                    // Check if created today
-                    const createdAt = new Date(lead.createdAt);
-                    if (createdAt >= today) {
-                        stats.today++;
+                    // Created Today
+                    if (lead.createdAt) {
+                        const created = new Date(lead.createdAt);
+                        if (created >= today) {
+                            stats.today++;
+                        }
+                    } else if (lead.timestamp) {
+                        const created = new Date(lead.timestamp);
+                        if (created >= today) {
+                            stats.today++;
+                        }
                     }
 
-                    // Count by status
+                    // Status
                     const status = (lead.status || 'new').toLowerCase();
                     if (status === 'new') stats.new++;
                     else if (status === 'contacted') stats.contacted++;
-                    else if (status === 'in-progress' || status === 'in progress') stats.inProgress++;
+                    else if (['in-progress', 'in progress', 'proposal', 'negotiation', 'qualified'].includes(status)) stats.inProgress++;
                     else if (status === 'approved') stats.approved++;
                     else if (status === 'rejected') stats.rejected++;
-                });
-
-                return {
-                    agent,
-                    stats,
-                };
+                }
             });
 
-            const allPerformances = await Promise.all(performancePromises);
-            setAgentPerformances(allPerformances);
-            setFilteredPerformances(allPerformances);
+            // 4. Combine
+            const finalPerformances: AgentPerformance[] = agentsWithManagers.map(agent => ({
+                agent,
+                stats: statsMap.get(agent.id)!
+            }));
+
+            setAgentPerformances(finalPerformances);
+            setFilteredPerformances(finalPerformances);
+
         } catch (error) {
             console.error('Error loading agent performance:', error);
             alert('Failed to load agent performance data');
@@ -150,9 +177,9 @@ export function AdminPerformanceDashboard() {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(
                 (perf) =>
-                    perf.agent.name.toLowerCase().includes(query) ||
-                    perf.agent.agentId.toLowerCase().includes(query) ||
-                    perf.agent.email.toLowerCase().includes(query)
+                    (perf.agent.name || '').toLowerCase().includes(query) ||
+                    (perf.agent.agentId || '').toLowerCase().includes(query) ||
+                    (perf.agent.email || '').toLowerCase().includes(query)
             );
         }
 
@@ -181,13 +208,7 @@ export function AdminPerformanceDashboard() {
                 rejected: acc.rejected + perf.stats.rejected,
             }),
             {
-                total: 0,
-                today: 0,
-                new: 0,
-                contacted: 0,
-                inProgress: 0,
-                approved: 0,
-                rejected: 0,
+                total: 0, today: 0, new: 0, contacted: 0, inProgress: 0, approved: 0, rejected: 0
             }
         );
     };
@@ -200,7 +221,7 @@ export function AdminPerformanceDashboard() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Performance Dashboard</h1>
-                        <p className="text-gray-600 mt-1">Monitor all agents' performance and lead statistics</p>
+                        <p className="text-gray-600 mt-1">Monitor all agents' performance and lead statistics (Realtime DB)</p>
                     </div>
                     <Button onClick={loadAllAgentsPerformance} disabled={loading}>
                         <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />

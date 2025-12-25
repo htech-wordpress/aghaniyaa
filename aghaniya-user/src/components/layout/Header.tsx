@@ -48,10 +48,7 @@ export function Header() {
                   <Link to="/loans/education-loan" className="w-full cursor-pointer">Education Loan</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/loans/bike-loan" className="w-full cursor-pointer">Bike Loan</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/loans/car-loan" className="w-full cursor-pointer">Car Loan</Link>
+                  <Link to="/loans/auto-loan" className="w-full cursor-pointer">Auto Loan</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/loans/business-loan" className="w-full cursor-pointer">Business Loan</Link>
@@ -60,7 +57,7 @@ export function Header() {
                   <Link to="/loans/home-loan" className="w-full cursor-pointer">Home Loan</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/loans/mortgage-loan" className="w-full cursor-pointer">Mortgage Loan</Link>
+                  <Link to="/loans/lap" className="w-full cursor-pointer">LAP</Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

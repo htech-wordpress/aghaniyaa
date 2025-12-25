@@ -1,39 +1,45 @@
-import { getFirestoreInstance } from './firebase';
+import { getDatabaseInstance } from './firebase';
 import * as XLSX from 'xlsx';
 import type { Lead, LeadCategory } from './storage';
 import {
-  collection,
-  addDoc,
-  setDoc,
-  doc,
-  getDoc,
-  getDocs,
+  ref,
+  push,
+  set,
+  get,
+  child,
+  update,
+  remove,
   query,
-  where,
-  orderBy,
-  onSnapshot,
-  deleteDoc,
-} from 'firebase/firestore';
+  orderByChild,
+  equalTo,
+  onValue,
+  off
+} from 'firebase/database';
 import { getAuth } from 'firebase/auth';
+import { getStorageInstance } from './firebase';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-// Firestore-backed leads helpers. These functions gracefully throw if Firestore is not configured.
+// Realtime DB-backed leads helpers. These functions gracefully throw if DB is not initialized.
 
-function ensureFirestore() {
-  const db = getFirestoreInstance();
-  if (!db) throw new Error('Firestore not initialized');
+function ensureDatabase() {
+  const db = getDatabaseInstance();
+  if (!db) throw new Error('Database not initialized');
   return db;
 }
 
 export async function saveLeadAsync(category: LeadCategory, data: Record<string, any>): Promise<Lead> {
-  const db = ensureFirestore();
+  const db = ensureDatabase();
   const timestamp = new Date().toISOString();
+  // Ensure timestamp is in data too as we might order by it inside data or root
   const payload = { category, data, timestamp };
-  console.log('Saving lead to Firestore:', payload); // Debug log
-  const ref = await addDoc(collection(db, 'leads'), payload);
-  // Avoid reading back the document to prevent permission errors for unauthenticated users
-  // who have create but not read access.
+  console.log('Saving lead to Realtime DB:', payload);
+
+  const leadsRef = ref(db, 'leads');
+  const newLeadRef = push(leadsRef);
+  await set(newLeadRef, payload);
+
   return {
-    id: ref.id,
+    id: newLeadRef.key as string,
     category,
     timestamp,
     data,
@@ -41,134 +47,118 @@ export async function saveLeadAsync(category: LeadCategory, data: Record<string,
 }
 
 export async function updateLeadAsync(updated: Lead): Promise<boolean> {
-  const db = ensureFirestore();
-  const ref = doc(db, 'leads', updated.id);
-  const snap = await getDoc(ref);
+  const db = ensureDatabase();
+  const leadsRef = ref(db, `leads/${updated.id}`);
+
+  // Check if exists
+  const snap = await get(leadsRef);
   if (!snap.exists()) return false;
-  await setDoc(ref, { category: updated.category, data: updated.data, timestamp: updated.timestamp }, { merge: true });
+
+  await update(leadsRef, {
+    category: updated.category,
+    data: updated.data,
+    timestamp: updated.timestamp
+  });
   return true;
 }
 
 export async function deleteLeadAsync(leadId: string): Promise<boolean> {
-  const db = ensureFirestore();
-  const ref = doc(db, 'leads', leadId);
-  const snap = await getDoc(ref);
+  const db = ensureDatabase();
+  const leadRef = ref(db, `leads/${leadId}`);
+  const snap = await get(leadRef);
   if (!snap.exists()) return false;
-  await deleteDoc(ref);
+  await remove(leadRef);
   return true;
 }
 
 export async function getLeadAsync(leadId: string): Promise<Lead | null> {
-  const db = ensureFirestore();
-  const ref = doc(db, 'leads', leadId);
-  const snap = await getDoc(ref);
+  const db = ensureDatabase();
+  const snap = await get(child(ref(db), `leads/${leadId}`));
   if (!snap.exists()) return null;
-  const d = snap.data() as any;
-  return { id: snap.id, category: d.category, timestamp: d.timestamp, data: d.data };
+  const d = snap.val();
+  return { id: snap.key!, category: d.category, timestamp: d.timestamp, data: d.data };
 }
 
 export async function getAllLeadsAsync(): Promise<Lead[]> {
-  const db = ensureFirestore();
-  const q = query(collection(db, 'leads'), orderBy('timestamp', 'desc'));
-  const snaps = await getDocs(q);
-  return snaps.docs.map(s => {
-    const d = s.data() as any;
-    return { id: s.id, category: d.category, timestamp: d.timestamp, data: d.data };
+  const db = ensureDatabase();
+  // Realtime DB order is ascending. We want descending. We'll reverse in memory.
+  // Note: orderByChild works on immediate children properties.
+  const q = query(ref(db, 'leads'), orderByChild('timestamp'));
+  const snap = await get(q);
+  const leads: Lead[] = [];
+  snap.forEach((childSnap) => {
+    const d = childSnap.val();
+    leads.push({ id: childSnap.key!, category: d.category, timestamp: d.timestamp, data: d.data });
   });
+  return leads.reverse();
 }
 
 export async function getLeadsByCategoryAsync(category: LeadCategory): Promise<Lead[]> {
-  const db = ensureFirestore();
-  const q = query(collection(db, 'leads'), where('category', '==', category), orderBy('timestamp', 'desc'));
-  const snaps = await getDocs(q);
-  return snaps.docs.map(s => {
-    const d = s.data() as any;
-    return { id: s.id, category: d.category, timestamp: d.timestamp, data: d.data };
+  const db = ensureDatabase();
+  const q = query(ref(db, 'leads'), orderByChild('category'), equalTo(category));
+  const snap = await get(q);
+  const leads: Lead[] = [];
+  snap.forEach((childSnap) => {
+    const d = childSnap.val();
+    leads.push({ id: childSnap.key!, category: d.category, timestamp: d.timestamp, data: d.data });
   });
+  // Sort by timestamp descending in memory since we already used order by category
+  return leads.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
 export function subscribeToLeads(callback: (leads: Lead[]) => void, category?: LeadCategory) {
-  const db = ensureFirestore();
-  const ref = collection(db, 'leads');
-  const q = category ? query(ref, where('category', '==', category), orderBy('timestamp', 'desc')) : query(ref, orderBy('timestamp', 'desc'));
+  const db = ensureDatabase();
+  const leadsRef = ref(db, 'leads');
 
-  // Attach an error handler to avoid uncaught permission errors from bubbling up
-  // into the Firestore internals (which can cause internal assertion failures).
-  try {
-    let cancelled = false;
-    let unsub: (() => void) | null = null;
+  let q;
+  if (category) {
+    q = query(leadsRef, orderByChild('category'), equalTo(category));
+  } else {
+    q = query(leadsRef, orderByChild('timestamp'));
+  }
 
-    // Probe permissions with a one-time read. If the caller doesn't have
-    // permission to read `leads`, getDocs will throw and we avoid attaching
-    // the watch which can drive internal client errors.
-    getDocs(q).then((initial) => {
-      if (cancelled) return;
-      const initialLeads = initial.docs.map(s => {
-        const d = s.data() as any;
-        return { id: s.id, category: d.category, timestamp: d.timestamp, data: d.data };
-      });
-      try { callback(initialLeads); } catch (e) { }
-
-      // Now attach the real-time listener
-      unsub = onSnapshot(q, (snapshot) => {
-        const leads = snapshot.docs.map(s => {
-          const d = s.data() as any;
-          return { id: s.id, category: d.category, timestamp: d.timestamp, data: d.data };
-        });
-        callback(leads);
-      }, (err) => {
-        const msg = String(err?.message || '').toLowerCase();
-        const code = String(err?.code || '').toLowerCase();
-        if (code.includes('permission-denied') || msg.includes('permission-denied') || msg.includes('missing or insufficient')) {
-          console.debug('subscribeToLeads permission denied (snapshot)');
-          try { callback([]); } catch (e) { }
-          try { unsub && unsub(); } catch (e) { }
-          return;
-        }
-
-        console.error('subscribeToLeads error', err);
-      });
-    }).catch((err: any) => {
-      const msg = String(err?.message || '').toLowerCase();
-      const code = String(err?.code || '').toLowerCase();
-      if (code.includes('permission-denied') || msg.includes('permission-denied') || msg.includes('missing or insufficient')) {
-        console.debug('subscribeToLeads permission denied on initial probe');
-        try { callback([]); } catch (e) { }
-        return;
-      }
-
-      console.error('subscribeToLeads initial probe failed', err);
-      try { callback([]); } catch (e) { }
+  const listener = onValue(q, (snapshot) => {
+    const leads: Lead[] = [];
+    snapshot.forEach((childSnap) => {
+      const d = childSnap.val();
+      leads.push({ id: childSnap.key!, category: d.category, timestamp: d.timestamp, data: d.data });
     });
 
-    // Return a synchronous unsubscribe that will cancel pending probe or the live listener
-    return () => { cancelled = true; try { unsub && unsub(); } catch (e) { } };
-  } catch (e) {
-    // If onSnapshot itself throws synchronously, fallback to no-op
-    console.debug('subscribeToLeads failed to attach listener', e);
-    try { callback([]); } catch (err) { }
-    return () => { };
-  }
+    // Reverse/Sort for descending timestamp
+    if (category) {
+      leads.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    } else {
+      leads.reverse();
+    }
+
+    callback(leads);
+  }, (error) => {
+    console.error('subscribeToLeads error', error);
+    callback([]);
+  });
+
+  return () => off(q, 'value', listener);
 }
 
-// Migrate localStorage leads into Firestore. Idempotent: will skip documents that already exist by id.
+// Migrate localStorage leads into Realtime DB.
 export async function migrateLocalLeadsToFirestore(): Promise<{ migrated: number; skipped: number }> {
-  const db = getFirestoreInstance();
-  if (!db) throw new Error('Firestore not initialized');
+  // Keeping function name for compatibility, but moving to Realtime DB
+  const db = ensureDatabase();
   const STORAGE_KEY = 'aghaniya_leads';
   const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) return { migrated: 0, skipped: 0 };
   const localLeads: Lead[] = JSON.parse(stored);
   let migrated = 0;
   let skipped = 0;
+
   for (const l of localLeads) {
-    const ref = doc(db, 'leads', l.id);
-    const snap = await getDoc(ref);
+    const leadRef = ref(db, `leads/${l.id}`);
+    const snap = await get(leadRef);
     if (snap.exists()) {
       skipped++;
       continue;
     }
-    await setDoc(ref, { category: l.category, data: l.data, timestamp: l.timestamp });
+    await set(leadRef, { category: l.category, data: l.data, timestamp: l.timestamp });
     migrated++;
   }
   return { migrated, skipped };
@@ -275,7 +265,7 @@ export async function importLeadsFromCSV(csvText: string): Promise<number> {
   // Helper to find index of best matching header
   const findIndex = (keywords: string[], antiKeywords: string[] = []) => {
     // 1. Exact match (trimmed, lowercase)
-    let idx = headers.findIndex(h => keywords.includes(h));
+    const idx = headers.findIndex(h => keywords.includes(h));
     if (idx !== -1) return idx;
 
     // 2. Contains match
@@ -318,7 +308,7 @@ export async function importLeadsFromCSV(csvText: string): Promise<number> {
     const getVal = (key: string) => (map[key] !== undefined && map[key] !== -1 && parts[map[key]]) ? parts[map[key]].trim() : '';
 
     // Determine category: Priority: CSV column -> 'contact' default
-    let categoryRaw = getVal('category').toLowerCase();
+    const categoryRaw = getVal('category').toLowerCase();
     // Validate category or fallback
     const validCategories: LeadCategory[] = ['home-loan', 'personal-loan', 'business-loan', 'education-loan', 'car-loan', 'gold-loan', 'loan-against-property', 'credit-card', 'cibil-check', 'contact', 'careers'];
 
@@ -389,31 +379,24 @@ export async function importLeadsFromExcel(buffer: ArrayBuffer): Promise<number>
 }
 
 export async function clearAllLeadsAsync(): Promise<void> {
-  const db = ensureFirestore();
-  const q = query(collection(db, 'leads'));
-  const snapshot = await getDocs(q);
-  const deletePromises = snapshot.docs.map(d => deleteDoc(d.ref));
-  await Promise.all(deletePromises);
+  const db = ensureDatabase();
+  await remove(ref(db, 'leads'));
 }
-
-import { getStorageInstance } from './firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-
 
 export async function uploadLeadDocument(leadId: string, file: File): Promise<string> {
   const storage = getStorageInstance();
   if (!storage) throw new Error('Storage not initialized');
 
   const path = `leads/${leadId}/documents/${Date.now()}_${file.name}`;
-  const storageRef = ref(storage, path);
+  const sRef = storageRef(storage, path);
 
-  await uploadBytes(storageRef, file);
-  return await getDownloadURL(storageRef);
+  await uploadBytes(sRef, file);
+  return await getDownloadURL(sRef);
 }
 
 export async function addDocumentToLeadAsync(leadId: string, docData: { name: string; url: string; type: string }) {
-  const db = ensureFirestore();
-  const leadRef = doc(db, 'leads', leadId);
+  const db = ensureDatabase();
+  const leadRef = ref(db, `leads/${leadId}`);
   const auth = getAuth();
   const userEmail = auth.currentUser?.email || 'Unknown';
 
@@ -424,10 +407,28 @@ export async function addDocumentToLeadAsync(leadId: string, docData: { name: st
     uploadedBy: userEmail
   };
 
-  const { updateDoc, arrayUnion } = await import('firebase/firestore');
+  // Need to get current data to array push to 'data.documents'
+  // Alternatively, we can assume data.documents is a list.
+  // In Realtime DB, arrays are just numerical keys. 
+  // Safest way: push to a sub-node 'data/documents'.
 
-  await updateDoc(leadRef, {
-    'data.documents': arrayUnion(newDoc)
+  // Note: The previous Firestore structure stored it in `data.documents` array.
+  // We can use a transaction or simple fetch-update.
+  // Let's use fetch-update for simplicity as collision risk is low here.
+
+  const docRef = child(leadRef, 'data/documents');
+  const snapshot = await get(docRef);
+
+  let currentDocs: any[] = [];
+  if (snapshot.exists()) {
+    currentDocs = snapshot.val();
+    if (!Array.isArray(currentDocs)) currentDocs = Object.values(currentDocs);
+  }
+
+  currentDocs.push(newDoc);
+
+  await update(child(leadRef, 'data'), {
+    documents: currentDocs
   });
 
   return newDoc;

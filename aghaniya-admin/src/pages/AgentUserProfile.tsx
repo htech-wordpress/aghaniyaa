@@ -2,65 +2,82 @@ import { useEffect, useState } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAgent } from '@/contexts/AgentContext';
-import { getFirestoreInstance } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { getDatabaseInstance } from '@/lib/firebase';
+import { ref, child, get, query, orderByChild, equalTo } from 'firebase/database';
 import { User, Mail, Phone, Briefcase, Calendar, Shield, Users, Building } from 'lucide-react';
 
 export function AgentUserProfile() {
+    interface ManagerInfo {
+        id: string;
+        name?: string;
+        email?: string;
+        phone?: string;
+        agentId?: string;
+        role?: string;
+        [key: string]: any; // Fallback for other fields
+    }
+
     const { currentAgent, loading: agentLoading } = useAgent();
-    const [manager, setManager] = useState<any>(null);
+    const [manager, setManager] = useState<ManagerInfo | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const loadManagerInfo = async () => {
+            if (!currentAgent?.managerId) {
+                setLoading(false);
+                return;
+            }
+
+            const db = getDatabaseInstance();
+            if (!db) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                // 1. Try Agents Collection (Doc ID) - System ID
+                // In RDB: agents/$uid
+                const managerSnap = await get(child(ref(db), `agents/${currentAgent.managerId}`));
+                if (managerSnap.exists()) {
+                    setManager({ id: managerSnap.key!, ...managerSnap.val() } as ManagerInfo);
+                    return;
+                }
+
+                // 2. Try Agents Collection (Custom ID - agentId field)
+                const agentsRef = ref(db, 'agents');
+                const q = query(agentsRef, orderByChild('agentId'), equalTo(currentAgent.managerId));
+                const snapshot = await get(q);
+
+                if (snapshot.exists()) {
+                    // Get first match
+                    let found: ManagerInfo | null = null;
+                    snapshot.forEach((childSnap) => {
+                        found = { id: childSnap.key!, ...childSnap.val() } as ManagerInfo;
+                        return true; // Stop
+                    });
+                    if (found) {
+                        setManager(found);
+                        return;
+                    }
+                }
+
+                // 3. Try Admins Collection (Doc ID) - If manager is an admin
+                const adminSnap = await get(child(ref(db), `admins/${currentAgent.managerId}`));
+                if (adminSnap.exists()) {
+                    setManager({ id: adminSnap.key!, ...adminSnap.val(), role: 'admin' } as ManagerInfo);
+                    return;
+                }
+
+                console.warn(`Manager details not found in 'agents' or 'admins' for ID: ${currentAgent.managerId}`);
+            } catch (error) {
+                console.error('Error loading manager:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         loadManagerInfo();
     }, [currentAgent]);
-
-    const loadManagerInfo = async () => {
-        if (!currentAgent?.managerId) {
-            setLoading(false);
-            return;
-        }
-
-        const firestore = getFirestoreInstance();
-        if (!firestore) {
-            setLoading(false);
-            return;
-        }
-
-        try {
-            // 1. Try Agents Collection (Doc ID) - System ID
-            const managerDoc = await getDoc(doc(firestore, 'agents', currentAgent.managerId));
-            if (managerDoc.exists()) {
-                setManager({ id: managerDoc.id, ...managerDoc.data() });
-                return;
-            }
-
-            // 2. Try Agents Collection (Custom ID - agentId field)
-            const agentsRef = collection(firestore, 'agents');
-            const q = query(agentsRef, where('agentId', '==', currentAgent.managerId));
-            const snapshot = await getDocs(q);
-
-            if (!snapshot.empty) {
-                const docResult = snapshot.docs[0];
-                setManager({ id: docResult.id, ...docResult.data() });
-                return;
-            }
-
-            // 3. Try Admins Collection (Doc ID) - If manager is an admin
-            const adminDoc = await getDoc(doc(firestore, 'admins', currentAgent.managerId));
-            if (adminDoc.exists()) {
-                setManager({ id: adminDoc.id, ...adminDoc.data(), role: 'admin' });
-                return;
-            }
-
-            console.warn(`Manager details not found in 'agents' or 'admins' for ID: ${currentAgent.managerId}`);
-        } catch (error) {
-            console.error('Error loading manager:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return 'N/A';

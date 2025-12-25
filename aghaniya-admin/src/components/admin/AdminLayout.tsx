@@ -13,7 +13,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isSuper, setIsSuper] = useState(false);
   const { currentAgent, isAgent: isAgentRole } = useAgent();
 
-  const [firestoreBlocked, setFirestoreBlocked] = useState<string | null>(null);
+
 
   useEffect(() => {
     const unsubscribe = onAuthChange(async (currentUser) => {
@@ -26,17 +26,6 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     });
 
-    // Probe Firestore network connectivity and detect client-side blocking
-    (async () => {
-      try {
-        const probe = await (await import('@/lib/firebase')).checkFirestoreNetwork();
-        if (!probe.ok) {
-          setFirestoreBlocked(probe.message || 'Firestore network blocked');
-        }
-      } catch (e) {
-        // ignore probe errors silently
-      }
-    })();
     return () => unsubscribe();
   }, [navigate]);
 
@@ -63,24 +52,6 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
           </a>
         </div>
       </header>
-      {firestoreBlocked && (
-        <div className="mb-4">
-          <div className="rounded-md bg-yellow-50 p-4 border border-yellow-200">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-yellow-700" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11V5a1 1 0 10-2 0v2a1 1 0 002 0zm0 6a1 1 0 10-2 0 1 1 0 002 0z" clipRule="evenodd" /></svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-yellow-800">{firestoreBlocked}</p>
-                <p className="mt-1 text-xs text-yellow-700">Disable ad-blockers / privacy extensions for <code>firestore.googleapis.com</code> or use the Firebase Emulator for local development.</p>
-              </div>
-              <div className="ml-auto pl-3">
-                <button className="text-yellow-700 underline text-sm" onClick={() => setFirestoreBlocked(null)}>Dismiss</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1">

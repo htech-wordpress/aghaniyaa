@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { getFirestoreInstance, isSuperUser } from '@/lib/firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, getDoc, setDoc } from 'firebase/firestore';
+import { getDatabaseInstance, isSuperUser } from '@/lib/firebase';
+import { ref, get, push, set, update, remove, child } from 'firebase/database';
 import { UserPlus, Pencil, Trash2, ShieldAlert, Shield } from 'lucide-react';
 
 interface AdminUser {
@@ -51,16 +51,17 @@ export function AdminUsers() {
   }, [isDialogOpen]);
 
   const generateNextAdminId = async () => {
-    const firestore = getFirestoreInstance();
-    if (!firestore) return;
+    const db = getDatabaseInstance();
+    if (!db) return;
 
     try {
       // Get global employee counter from settings
-      const counterDoc = await getDoc(doc(firestore, 'settings', 'employeeCounter'));
+      const counterRef = child(ref(db), 'settings/employeeCounter');
+      const counterSnap = await get(counterRef);
       let nextNumber = 1;
 
-      if (counterDoc.exists()) {
-        nextNumber = (counterDoc.data().lastNumber || 0) + 1;
+      if (counterSnap.exists()) {
+        nextNumber = (counterSnap.val().lastNumber || 0) + 1;
       }
 
       // Admin ID format: AG001, AG002, etc.
@@ -83,21 +84,24 @@ export function AdminUsers() {
 
   const loadAdminUsers = async () => {
     setLoading(true);
-    const firestore = getFirestoreInstance();
-    if (!firestore) {
+    const db = getDatabaseInstance();
+    if (!db) {
       setLoading(false);
       return;
     }
 
     try {
-      const adminsRef = collection(firestore, 'adminUsers');
-      const q = query(adminsRef, orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
+      const adminsRef = ref(db, 'adminUsers');
+      const snapshot = await get(adminsRef);
       const adminsList: AdminUser[] = [];
 
-      snapshot.forEach((docSnapshot) => {
-        adminsList.push({ id: docSnapshot.id, ...docSnapshot.data() } as AdminUser);
+      snapshot.forEach((childSnap) => {
+        adminsList.push({ id: childSnap.key!, ...childSnap.val() } as AdminUser);
       });
+
+      // Sort by createdAt desc if possible, otherwise by key/creation order?
+      // Assuming createdAt exists
+      adminsList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       setAdminUsers(adminsList);
     } catch (error) {
@@ -122,8 +126,8 @@ export function AdminUsers() {
       return;
     }
 
-    const firestore = getFirestoreInstance();
-    if (!firestore) return;
+    const db = getDatabaseInstance();
+    if (!db) return;
 
     setLoading(true);
     try {
@@ -134,24 +138,23 @@ export function AdminUsers() {
       };
 
       if (editingAdmin) {
-        await updateDoc(doc(firestore, 'adminUsers', editingAdmin.id), adminData);
+        await update(ref(db, `adminUsers/${editingAdmin.id}`), adminData);
         alert('Admin user updated successfully!');
       } else {
-        await addDoc(collection(firestore, 'adminUsers'), {
+        const adminsRef = ref(db, 'adminUsers');
+        const newAdminRef = push(adminsRef);
+
+        await set(newAdminRef, {
           ...adminData,
           createdAt: new Date().toISOString(),
         });
 
         // Increment global employee counter
-        const counterRef = doc(firestore, 'settings', 'employeeCounter');
-        const counterDoc = await getDoc(counterRef);
-        const currentNumber = counterDoc.exists() ? (counterDoc.data().lastNumber || 0) : 0;
+        const counterRef = child(ref(db), 'settings/employeeCounter');
+        const counterSnap = await get(counterRef);
+        const currentNumber = counterSnap.exists() ? (counterSnap.val().lastNumber || 0) : 0;
 
-        if (counterDoc.exists()) {
-          await updateDoc(counterRef, { lastNumber: currentNumber + 1 });
-        } else {
-          await setDoc(counterRef, { lastNumber: 1 });
-        }
+        await update(counterRef, { lastNumber: currentNumber + 1 });
 
         alert('Admin user added successfully!');
       }
@@ -185,12 +188,12 @@ export function AdminUsers() {
   const handleDelete = async (admin: AdminUser) => {
     if (!confirm(`Are you sure you want to delete ${admin.name}?`)) return;
 
-    const firestore = getFirestoreInstance();
-    if (!firestore) return;
+    const db = getDatabaseInstance();
+    if (!db) return;
 
     setLoading(true);
     try {
-      await deleteDoc(doc(firestore, 'adminUsers', admin.id));
+      await remove(ref(db, `adminUsers/${admin.id}`));
       alert('Admin user deleted successfully!');
       loadAdminUsers();
     } catch (error) {

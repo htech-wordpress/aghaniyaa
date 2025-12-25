@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { saveLeadAsync, updateLeadAsync, subscribeToLeads, importLeadsFromCSV, importLeadsFromExcel, exportLeadsToCSV } from '@/lib/leads';
 import type { Lead, LeadCategory } from '@/lib/storage';
 import { LeadDetailsDialog } from './LeadDetailsDialog';
-import { getFirestoreInstance } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { getDatabaseInstance } from '@/lib/firebase';
+import { get, ref } from 'firebase/database';
 
 type Props = {
   category: LeadCategory | 'all' | 'manual';
@@ -38,15 +38,17 @@ export function LeadsPage({ category, title }: Props) {
   // Fetch agents for filtering
   useEffect(() => {
     const fetchAgents = async () => {
-      const db = getFirestoreInstance();
+      const db = getDatabaseInstance();
       if (!db) return;
       try {
-        const snap = await getDocs(collection(db, 'agents'));
+        const snap = await get(ref(db, 'agents'));
         const map: Record<string, { name: string; role: string }> = {};
-        snap.forEach(doc => {
-          const d = doc.data();
-          if (d.email) map[d.email] = { name: d.name, role: d.role };
-        });
+        if (snap.exists()) {
+          snap.forEach(childSnap => {
+            const d = childSnap.val();
+            if (d.email) map[d.email] = { name: d.name, role: d.role };
+          });
+        }
         setAgentsMap(map);
       } catch (e) {
         console.error("Failed to fetch agents map", e);
@@ -88,7 +90,7 @@ export function LeadsPage({ category, title }: Props) {
     );
 
     return () => unsub();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [effectiveCategory]);
 
   // Sync selectedLead with real-time updates

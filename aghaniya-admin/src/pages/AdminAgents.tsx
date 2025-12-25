@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { getFirestoreInstance, isSuperUser } from '@/lib/firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, getDoc, setDoc, where } from 'firebase/firestore';
+import { getDatabaseInstance, isSuperUser } from '@/lib/firebase';
+import { ref, get, push, set, remove, child, update } from 'firebase/database';
 import { UserPlus, Pencil, Trash2, Users, Shield, Briefcase, AlertCircle } from 'lucide-react';
 
 interface Agent {
@@ -71,22 +71,25 @@ export function AdminAgents() {
 
     const loadAgents = async () => {
         setLoading(true);
-        const firestore = getFirestoreInstance();
-        if (!firestore) {
-            console.error('Firestore not initialized');
+        const db = getDatabaseInstance();
+        if (!db) {
+            console.error('Database not initialized');
             setLoading(false);
             return;
         }
 
         try {
-            const agentsRef = collection(firestore, 'agents');
-            const q = query(agentsRef, orderBy('createdAt', 'desc'));
-            const snapshot = await getDocs(q);
+            const agentsRef = ref(db, 'agents');
+            // We fetch all and sort in memory
+            const snapshot = await get(agentsRef);
             const agentsList: Agent[] = [];
 
-            snapshot.forEach((doc) => {
-                agentsList.push({ id: doc.id, ...doc.data() } as Agent);
+            snapshot.forEach((childSnap) => {
+                agentsList.push({ id: childSnap.key!, ...childSnap.val() } as Agent);
             });
+
+            // Sort by createdAt desc
+            agentsList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
             setAgents(agentsList);
         } catch (error) {
@@ -98,23 +101,24 @@ export function AdminAgents() {
     };
 
     const loadAdminUsers = async () => {
-        const firestore = getFirestoreInstance();
-        if (!firestore) return;
+        const db = getDatabaseInstance();
+        if (!db) return;
 
         try {
-            const adminUsersRef = collection(firestore, 'adminUsers');
-            const q = query(adminUsersRef, where('status', '==', 'active'));
-            const snapshot = await getDocs(q);
+            const adminUsersRef = ref(db, 'adminUsers');
+            const snapshot = await get(adminUsersRef);
             const adminUsersList: { id: string; adminId: string; name: string; email: string; }[] = [];
 
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                adminUsersList.push({
-                    id: doc.id,
-                    adminId: data.adminId,
-                    name: data.name,
-                    email: data.email,
-                });
+            snapshot.forEach((childSnap) => {
+                const data = childSnap.val();
+                if (data.status === 'active') {
+                    adminUsersList.push({
+                        id: childSnap.key!,
+                        adminId: data.adminId,
+                        name: data.name,
+                        email: data.email,
+                    });
+                }
             });
 
             setAdminUsers(adminUsersList);
@@ -124,16 +128,17 @@ export function AdminAgents() {
     };
 
     const generateNextAgentId = async () => {
-        const firestore = getFirestoreInstance();
-        if (!firestore) return;
+        const db = getDatabaseInstance();
+        if (!db) return;
 
         try {
             // Get global employee counter from settings
-            const counterDoc = await getDoc(doc(firestore, 'settings', 'employeeCounter'));
-            let nextNumber = 1;
+            const counterRef = child(ref(db), 'settings/employeeCounter');
+            const counterSnap = await get(counterRef);
 
-            if (counterDoc.exists()) {
-                nextNumber = (counterDoc.data().lastNumber || 0) + 1;
+            let nextNumber = 1;
+            if (counterSnap.exists()) {
+                nextNumber = (counterSnap.val().lastNumber || 0) + 1;
             }
 
             // Generate ID based on employment type
@@ -160,13 +165,14 @@ export function AdminAgents() {
     };
 
     const loadSystemSettings = async () => {
-        const firestore = getFirestoreInstance();
-        if (!firestore) return;
+        const db = getDatabaseInstance();
+        if (!db) return;
 
         try {
-            const systemDoc = await getDoc(doc(firestore, 'settings', 'system'));
-            if (systemDoc.exists()) {
-                const data = systemDoc.data();
+            const systemRef = child(ref(db), 'settings/system');
+            const systemSnap = await get(systemRef);
+            if (systemSnap.exists()) {
+                const data = systemSnap.val();
                 setMaxAgents(data.maxAgents || 100);
                 setAgentLimitEnabled(data.enableAgentLimit !== false);
             }
@@ -198,8 +204,8 @@ export function AdminAgents() {
             }
         }
 
-        const firestore = getFirestoreInstance();
-        if (!firestore) return;
+        const db = getDatabaseInstance();
+        if (!db) return;
 
         setLoading(true);
         try {
@@ -212,7 +218,7 @@ export function AdminAgents() {
 
             if (editingAgent) {
                 // Update existing agent
-                await updateDoc(doc(firestore, 'agents', editingAgent.id), agentData);
+                await update(ref(db, `agents/${editingAgent.id}`), agentData);
                 alert('Agent updated successfully!');
             } else {
                 // Check if Agent ID already exists
@@ -224,21 +230,19 @@ export function AdminAgents() {
                 }
 
                 // Add new agent
-                await addDoc(collection(firestore, 'agents'), {
+                const agentsRef = ref(db, 'agents');
+                const newAgentRef = push(agentsRef);
+                await set(newAgentRef, {
                     ...agentData,
                     createdAt: new Date().toISOString(),
                 });
 
                 // Increment global employee counter
-                const counterRef = doc(firestore, 'settings', 'employeeCounter');
-                const counterDoc = await getDoc(counterRef);
-                const currentNumber = counterDoc.exists() ? (counterDoc.data().lastNumber || 0) : 0;
+                const counterRef = child(ref(db), 'settings/employeeCounter');
+                const counterSnap = await get(counterRef);
+                const currentNumber = counterSnap.exists() ? (counterSnap.val().lastNumber || 0) : 0;
 
-                if (counterDoc.exists()) {
-                    await updateDoc(counterRef, { lastNumber: currentNumber + 1 });
-                } else {
-                    await setDoc(counterRef, { lastNumber: 1 });
-                }
+                await update(counterRef, { lastNumber: currentNumber + 1 });
 
                 alert('Agent added successfully!');
             }
@@ -274,12 +278,12 @@ export function AdminAgents() {
     const handleDelete = async (agentId: string, agentIdStr: string) => {
         if (!confirm(`Are you sure you want to delete agent ${agentIdStr}?`)) return;
 
-        const firestore = getFirestoreInstance();
-        if (!firestore) return;
+        const db = getDatabaseInstance();
+        if (!db) return;
 
         setLoading(true);
         try {
-            await deleteDoc(doc(firestore, 'agents', agentId));
+            await remove(ref(db, `agents/${agentId}`));
             alert('Agent deleted successfully!');
             loadAgents();
         } catch (error) {
@@ -545,7 +549,6 @@ export function AdminAgents() {
                                             value={formData.department}
                                             onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                                             className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="Sales"
                                         />
                                     </div>
 

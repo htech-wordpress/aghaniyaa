@@ -1,28 +1,31 @@
-import { getFirestoreInstance } from './firebase';
+import { getDatabaseInstance } from './firebase';
 import type { Lead, LeadCategory } from './storage';
 import {
-  collection,
-  addDoc,
-} from 'firebase/firestore';
+  ref,
+  push,
+  set
+} from 'firebase/database';
 
-// Firestore-backed leads helpers. These functions gracefully throw if Firestore is not configured.
+// Realtime DB-backed leads helpers. These functions gracefully throw if DB is not initialized.
 
-function ensureFirestore() {
-  const db = getFirestoreInstance();
-  if (!db) throw new Error('Firestore not initialized');
+function ensureDatabase() {
+  const db = getDatabaseInstance();
+  if (!db) throw new Error('Database not initialized');
   return db;
 }
 
-export async function saveLeadAsync(category: LeadCategory, data: Record<string, any>): Promise<Lead> {
-  const db = ensureFirestore();
+export async function saveLeadAsync(category: LeadCategory, data: Record<string, unknown>): Promise<Lead> {
+  const db = ensureDatabase();
   const timestamp = new Date().toISOString();
   const payload = { category, data, timestamp };
-  console.log('Saving lead to Firestore:', payload); // Debug log
-  const ref = await addDoc(collection(db, 'leads'), payload);
-  // Avoid reading back the document to prevent permission errors for unauthenticated users
-  // who have create but not read access.
+  console.log('Saving lead to Realtime DB:', payload); // Debug log
+
+  const leadsRef = ref(db, 'leads');
+  const newLeadRef = push(leadsRef);
+  await set(newLeadRef, payload);
+
   return {
-    id: ref.id,
+    id: newLeadRef.key as string,
     category,
     timestamp,
     data,

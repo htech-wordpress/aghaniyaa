@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock, AlertCircle, RefreshCw } from 'lucide-react';
-import { signInWithGoogle, isSuperUser, isAdminUser, getFirestoreInstance } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { signInWithGoogle, isSuperUser, isAdminUser, getDatabaseInstance } from '@/lib/firebase';
+import { ref, query, orderByChild, equalTo, get } from 'firebase/database';
 
 export function AdminLogin() {
   const [error, setError] = useState('');
@@ -32,41 +32,54 @@ export function AdminLogin() {
         }
 
         // Check if user is in adminUsers collection
-        const firestore = getFirestoreInstance();
-        if (firestore) {
-          const adminUsersRef = collection(firestore, 'adminUsers');
+        const db = getDatabaseInstance();
+        if (db) {
+          const adminUsersRef = ref(db, 'adminUsers');
           const adminQuery = query(
             adminUsersRef,
-            where('email', '==', user.email),
-            where('status', '==', 'active')
+            orderByChild('email'),
+            equalTo(user.email)
           );
-          const adminSnapshot = await getDocs(adminQuery);
+          const adminSnapshot = await get(adminQuery);
 
-          if (!adminSnapshot.empty) {
+          let validAdminFound = false;
+          adminSnapshot.forEach((childSnap) => {
+            const data = childSnap.val();
+            if (data.status === 'active') {
+              validAdminFound = true;
+            }
+          });
+
+          if (validAdminFound) {
             // Admin user found, redirect to dashboard
             navigate('/dashboard');
             return;
           }
 
           // Check if user is an agent in agents collection
-          const agentsRef = collection(firestore, 'agents');
-          const q = query(
+          const agentsRef = ref(db, 'agents');
+          const agentQuery = query(
             agentsRef,
-            where('email', '==', user.email),
-            where('status', '==', 'active')
+            orderByChild('email'),
+            equalTo(user.email)
           );
-          const snapshot = await getDocs(q);
+          const snapshot = await get(agentQuery);
 
-          if (!snapshot.empty) {
-            const agentDoc = snapshot.docs[0];
-            const agentData = agentDoc.data();
+          let foundAgent: any = null;
+          snapshot.forEach((childSnap) => {
+            const data = childSnap.val();
+            if (data.status === 'active') {
+              foundAgent = data;
+            }
+          });
 
+          if (foundAgent) {
             // Redirect based on agent role
-            if (agentData.role === 'admin') {
+            if (foundAgent.role === 'admin') {
               navigate('/dashboard');
-            } else if (agentData.role === 'manager') {
+            } else if (foundAgent.role === 'manager') {
               navigate('/dashboard');
-            } else if (agentData.role === 'agent') {
+            } else if (foundAgent.role === 'agent') {
               navigate('/my-leads');
             } else {
               navigate('/my-leads'); // Default for agents

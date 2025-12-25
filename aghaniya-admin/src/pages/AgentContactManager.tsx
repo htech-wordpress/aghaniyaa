@@ -3,8 +3,8 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAgent } from '@/contexts/AgentContext';
-import { getFirestoreInstance } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { getDatabaseInstance } from '@/lib/firebase';
+import { ref, get } from 'firebase/database';
 import { Mail, Phone, User, Shield, MessageCircle, Building } from 'lucide-react';
 
 export function AgentContactManager() {
@@ -22,16 +22,18 @@ export function AgentContactManager() {
             return;
         }
 
-        const firestore = getFirestoreInstance();
-        if (!firestore) {
+        const db = getDatabaseInstance();
+        if (!db) {
             setLoading(false);
             return;
         }
 
         try {
-            const managerDoc = await getDoc(doc(firestore, 'agents', currentAgent.managerId));
-            if (managerDoc.exists()) {
-                setManager({ id: managerDoc.id, ...managerDoc.data() });
+            const managerRef = ref(db, `agents/${currentAgent.managerId}`);
+            const snapshot = await get(managerRef);
+
+            if (snapshot.exists()) {
+                setManager({ id: snapshot.key, ...snapshot.val() });
             }
         } catch (error) {
             console.error('Error loading manager:', error);

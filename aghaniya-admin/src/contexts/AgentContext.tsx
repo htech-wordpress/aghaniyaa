@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { getFirestoreInstance } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { getDatabaseInstance } from '@/lib/firebase';
+import { ref, query, orderByChild, equalTo, get } from 'firebase/database';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import type { User } from 'firebase/auth';
 
@@ -35,22 +35,40 @@ export function AgentProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     const loadAgentByEmail = async (email: string) => {
-        const firestore = getFirestoreInstance();
-        if (!firestore) return null;
+        const db = getDatabaseInstance();
+        if (!db) return null;
 
         try {
-            const agentsRef = collection(firestore, 'agents');
+            const agentsRef = ref(db, 'agents');
+            // Assuming we index 'agents' by email or just scan (filtering by email)
+            // Realtime DB requires index on rules for performant queries on props
             const q = query(
                 agentsRef,
-                where('email', '==', email),
-                where('status', '==', 'active')
+                orderByChild('email'),
+                equalTo(email)
             );
-            const snapshot = await getDocs(q);
+            const snapshot = await get(q);
 
-            if (snapshot.empty) return null;
+            if (!snapshot.exists()) {
+                // Also check if admin? Or logic strictly says this context is for Agents?
+                // The interface has role 'admin', so maybe we should check admins too if not found in agents?
+                // The original code only checked 'agents' collection. Sticking to that.
+                return null;
+            }
 
-            const doc = snapshot.docs[0];
-            return { id: doc.id, ...doc.data() } as Agent;
+            // Snapshot can have multiple matches (though unique email is expected)
+            // It returns an object of keys
+            let foundAgent: Agent | null = null;
+
+            snapshot.forEach((childSnap) => {
+                const data = childSnap.val();
+                if (data.status === 'active') {
+                    foundAgent = { id: childSnap.key!, ...data } as Agent;
+                    return true; // Stop iteration? No, forEach in RB doesn't support break easily, but we take the first active one.
+                }
+            });
+
+            return foundAgent;
         } catch (error) {
             console.error('Error loading agent:', error);
             return null;

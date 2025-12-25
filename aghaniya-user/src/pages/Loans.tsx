@@ -1,61 +1,14 @@
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollAnimation } from '@/components/ScrollAnimation';
 // import { Card3D } from '@/components/Card3D';
-import { Home as HomeIcon, Building2, Briefcase, GraduationCap, Car, Gem, Landmark } from 'lucide-react';
+import { loanOptions } from '@/data/loanOptions';
 
-const loans = [
-  {
-    id: 'home-loan',
-    title: 'Home Loan',
-    description: 'Your Dream Home Awaits - Explore Our Range Of Home Loan Products.',
-    icon: HomeIcon,
-    features: ['Low interest rates', 'Flexible repayment options', 'Quick approval', 'Up to 90% financing'],
-  },
-  {
-    id: 'loan-against-property',
-    title: 'Loan against Property',
-    description: 'Unlock your property\'s value with tailored loan solutions.',
-    icon: Landmark,
-    features: ['High loan amount', 'Long tenure', 'Competitive rates', 'Easy documentation'],
-  },
-  {
-    id: 'personal-loan',
-    title: 'Personal Loan',
-    description: 'Achieve your dreams with our versatile personal loan options.',
-    icon: Briefcase,
-    features: ['No collateral required', 'Instant approval', 'Flexible tenure', 'Quick disbursal'],
-  },
-  {
-    id: 'business-loan',
-    title: 'Business Loan',
-    description: 'Boost your business growth with our flexible financing options.',
-    icon: Building2,
-    features: ['Working capital support', 'Business expansion', 'Competitive rates', 'Fast processing'],
-  },
-  {
-    id: 'education-loan',
-    title: 'Education Loan',
-    description: 'Invest in your child\'s future with our specialized education loans.',
-    icon: GraduationCap,
-    features: ['Coverage for tuition fees', 'Moratorium period', 'Tax benefits', 'Flexible repayment'],
-  },
-  {
-    id: 'car-loan',
-    title: 'Car Loan',
-    description: 'Drive your dream car with our quick and flexible car loans.',
-    icon: Car,
-    features: ['New & used cars', 'Low interest rates', 'Quick approval', 'No prepayment charges'],
-  },
-  {
-    id: 'gold-loan',
-    title: 'Gold Loan',
-    description: 'Meet your financial needs with gold loans from trusted banks.',
-    icon: Gem,
-    features: ['Instant disbursal', 'Minimum documentation', 'Competitive rates', 'Flexible repayment'],
-  },
-];
+const loans = loanOptions.map(opt => ({
+  ...opt,
+  features: ['Quick Approval', 'Competitive Rates', 'Flexible Tenure', 'Minimal Documentation']
+}));
 
 export function Loans() {
   return (
@@ -76,26 +29,28 @@ export function Loans() {
           {loans.map((loan, index) => {
             const Icon = loan.icon;
             return (
-              <ScrollAnimation key={loan.id} direction="up" delay={index * 0.1} duration={0.6}>
-                <Card className="hover:shadow-xl transition-all duration-300 h-full border-slate-100 bg-white group hover:-translate-y-1">
-                  <CardHeader>
-                    <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                      <Icon className="h-7 w-7 text-primary" />
+              <ScrollAnimation key={loan.id} direction="up" delay={(index % 3) * 0.1} duration={0.4}>
+                <Card className="hover:shadow-2xl transition-all duration-300 h-full border-slate-100 bg-white group hover:-translate-y-1 rounded-2xl overflow-hidden shadow-md">
+                  <CardHeader className="flex flex-row items-start space-y-0 pb-2 gap-4">
+                    <div className="h-14 w-14 shrink-0 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-md">
+                      <Icon className="h-7 w-7 text-white" />
                     </div>
-                    <CardTitle className="text-2xl text-slate-800">{loan.title}</CardTitle>
-                    <CardDescription className="text-slate-500">{loan.description}</CardDescription>
+                    <div>
+                      <CardTitle className="text-xl font-bold text-slate-800 leading-tight mb-1">{loan.title}</CardTitle>
+                      <p className="text-sm text-slate-600 leading-snug">{loan.description}</p>
+                    </div>
                   </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3 mb-8">
+                  <CardContent className="pt-4">
+                    <ul className="space-y-3 mb-6">
                       {loan.features.map((feature, featureIndex) => (
                         <li key={featureIndex} className="flex items-start text-sm text-slate-600">
-                          <span className="text-primary mr-3 mt-0.5">•</span>
+                          <span className="text-orange-500 mr-2 mt-0.5">•</span>
                           {feature}
                         </li>
                       ))}
                     </ul>
                     <Link to={`/loans/${loan.id}`}>
-                      <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white shadow-md hover:shadow-lg transition-all">
+                      <Button className="w-full bg-rose-900 hover:bg-rose-800 text-white font-semibold shadow-sm rounded-lg">
                         Apply Now
                       </Button>
                     </Link>

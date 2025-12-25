@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { onAuthChange, isAdminUser, isSuperUser, getFirestoreInstance } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { onAuthChange, isAdminUser, isSuperUser, getDatabaseInstance } from '@/lib/firebase';
+import { ref, query, orderByChild, equalTo, get } from 'firebase/database';
 import { RefreshCw } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -37,32 +37,46 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
       }
 
       // Check if user is in adminUsers collection
-      const firestore = getFirestoreInstance();
-      if (firestore) {
-        const adminUsersRef = collection(firestore, 'adminUsers');
+      const db = getDatabaseInstance();
+      if (db && user.email) {
+        const adminUsersRef = ref(db, 'adminUsers');
         const adminQuery = query(
           adminUsersRef,
-          where('email', '==', user.email),
-          where('status', '==', 'active')
+          orderByChild('email'),
+          equalTo(user.email)
         );
-        const adminSnapshot = await getDocs(adminQuery);
+        const adminSnapshot = await get(adminQuery);
 
-        if (!adminSnapshot.empty) {
+        let validAdmin = false;
+        adminSnapshot.forEach((childSnap) => {
+          if (childSnap.val().status === 'active') {
+            validAdmin = true;
+          }
+        });
+
+        if (validAdmin) {
           setAuthorized(true);
           setLoading(false);
           return;
         }
 
         // Check if user is in agents collection
-        const agentsRef = collection(firestore, 'agents');
+        const agentsRef = ref(db, 'agents');
         const agentQuery = query(
           agentsRef,
-          where('email', '==', user.email),
-          where('status', '==', 'active')
+          orderByChild('email'),
+          equalTo(user.email)
         );
-        const agentSnapshot = await getDocs(agentQuery);
+        const agentSnapshot = await get(agentQuery);
 
-        if (!agentSnapshot.empty) {
+        let validAgent = false;
+        agentSnapshot.forEach((childSnap) => {
+          if (childSnap.val().status === 'active') {
+            validAgent = true;
+          }
+        });
+
+        if (validAgent) {
           setAuthorized(true);
           setLoading(false);
           return;
