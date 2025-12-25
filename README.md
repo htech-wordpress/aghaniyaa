@@ -1,6 +1,8 @@
 # AGHANIYA - Bank DSA Web Application
 
-A modern, responsive web application for a Bank Direct Selling Agent (DSA) platform built with React, TypeScript, Vite, and Shadcn UI.
+A modern, responsive customer-facing web application for a Bank Direct Selling Agent (DSA) platform built with React, TypeScript, Vite, and Shadcn UI.
+
+> **Note**: This is the customer-facing application. For the admin panel, see the `aghaniya-admin` project.
 
 ## Features
 
@@ -15,8 +17,11 @@ A modern, responsive web application for a Bank Direct Selling Agent (DSA) platf
   - Loan against Property
 - **Credit Cards** section with multiple card options
 - **EMI Calculator** with interactive sliders
+- **CIBIL Check** for credit score checking
 - **About Us** page with company information
 - **Contact Us** page with contact form
+- **Our Team** page
+- **Careers** page for job applications
 - **Bank Partners** section showcasing partner institutions
 
 ## Tech Stack
@@ -28,6 +33,7 @@ A modern, responsive web application for a Bank Direct Selling Agent (DSA) platf
 - **Shadcn UI** - Component library
 - **React Router** - Navigation
 - **Lucide React** - Icons
+- **Firebase** - Backend (Firestore for data storage)
 
 ## Getting Started
 
@@ -43,22 +49,34 @@ A modern, responsive web application for a Bank Direct Selling Agent (DSA) platf
 npm install
 ```
 
-2. Start the development server:
+2. Create a `.env` file with your Firebase configuration:
+```env
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
+
+3. Start the development server:
 ```bash
 npm run dev
 ```
 
-3. Build for production:
+4. Build for production:
 ```bash
 npm run build
 ```
 
-4. Preview production build:
+5. Preview production build:
 ```bash
 npm run preview
 ```
 
 ## Deployment to GitHub Pages
+
+> For Firebase Hosting multi-site deploys (admin + user), see `DEPLOYMENT.md` for target setup and `firebase target:apply` examples.
 
 This project is configured to automatically deploy to GitHub Pages using GitHub Actions.
 
@@ -83,14 +101,13 @@ This project is configured to automatically deploy to GitHub Pages using GitHub 
    - The workflow will automatically build and deploy your application
    - The deployment will be available at: `https://yourusername.github.io/repository-name/`
    - **SPA Routing**: The workflow automatically generates a `404.html` file to support client-side routing
-   - All routes including admin routes (`/admin/login`, `/admin/dashboard`) will work correctly
 
 4. **Check deployment status**:
    - Go to the Actions tab in your GitHub repository
    - Monitor the "Deploy to GitHub Pages" workflow
    - Verify that `404.html` is generated in the build artifacts
 
-**Note**: The `404.html` file is automatically generated during build to handle SPA routing on GitHub Pages. This ensures that direct URL access to any route (including admin routes) works correctly.
+**Note**: The `404.html` file is automatically generated during build to handle SPA routing on GitHub Pages.
 
 ### Troubleshooting
 
@@ -132,7 +149,9 @@ src/
 │   ├── ui/              # Shadcn UI components
 │   ├── layout/          # Header and Footer
 │   ├── BannerSlider.tsx # Banner carousel component
-│   └── LoanForm.tsx     # Reusable loan application form
+│   ├── LoanForm.tsx     # Reusable loan application form
+│   ├── WhatsAppButton.tsx # WhatsApp contact button
+│   └── ...
 ├── pages/
 │   ├── Home.tsx         # Landing page
 │   ├── About.tsx        # About Us page
@@ -140,8 +159,13 @@ src/
 │   ├── Loans.tsx        # Loans listing page
 │   ├── LoanDetail.tsx   # Individual loan detail page
 │   ├── CreditCards.tsx  # Credit cards page
-│   └── EMICalculator.tsx # EMI calculator page
+│   ├── EMICalculator.tsx # EMI calculator page
+│   ├── CibilCheck.tsx   # CIBIL checker page
+│   ├── OurTeam.tsx      # Team page
+│   └── Careers.tsx      # Careers page
 ├── lib/
+│   ├── firebase.ts      # Firebase configuration
+│   ├── leads.ts         # Lead management functions
 │   └── utils.ts         # Utility functions
 └── App.tsx              # Main app component with routing
 ```
@@ -149,15 +173,15 @@ src/
 ## Pages
 
 - `/` - Landing page with banners and loan categories
+- `/about` - About Us page
+- `/contact` - Contact Us page with form
 - `/loans` - All loan types overview
 - `/loans/:loanType` - Individual loan application form
 - `/credit-cards` - Credit card listings and application
-- `/about` - About Us page
-- `/contact` - Contact Us page with form
 - `/emi-calculator` - EMI calculator tool
 - `/cibil-check` - CIBIL score checker
-- `/admin/login` - Admin login page
-- `/admin/dashboard` - Admin dashboard for managing leads
+- `/our-team` - Our team page
+- `/careers` - Careers and job application page
 
 ## Loan Types
 
@@ -190,29 +214,16 @@ The platform features partnerships with leading financial institutions including
 - ✅ Animated banner slider
 - ✅ Type-safe with TypeScript
 - ✅ Fast development with Vite
-- ✅ Admin panel for lead management
 - ✅ CIBIL score checker
-- ✅ Lead management system with categories
+- ✅ Lead submission to Firebase
 - ✅ SPA routing support for GitHub Pages
+- ✅ WhatsApp integration
 
 ## Admin Panel
 
-The application includes a fully functional admin panel for managing leads:
-
-- **Login**: Navigate to `/admin/login` (default password: `admin123`)
-- **Dashboard**: View and manage all leads by category
-- **Features**:
-  - View leads by category (Home Loan, Personal Loan, Credit Cards, CIBIL Check, etc.)
-  - Export leads as JSON
-  - Delete individual leads
-  - Expand lead details
-  - Add dummy data for testing
-  - Real-time statistics
-
-### Admin Routes
-- `/admin/login` - Admin authentication
-- `/admin/dashboard` - Lead management dashboard
+For managing leads, users, and settings, see the separate **aghaniya-admin** project in the `aghaniya-admin` folder.
 
 ## License
 
 This project is private and proprietary.
+

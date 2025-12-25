@@ -1,11 +1,8 @@
-// Rules seem correct, no changes needed to content.
-// But I will add a comment to ensure file is detected if needed.
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ... existing rules ...
 
-
+    // --- Helper functions ---
     function isSuperUser() {
       return request.auth != null && 
              exists(/databases/$(database)/documents/adminConfig/superusers) &&
@@ -26,17 +23,10 @@ service cloud.firestore {
       );
     }
 
-    match /leads/{leadId} {
-      // Allow public create (form submissions) without strict validation for now to unblock
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
-    }
+    // --- Admin config & protected collections ---
 
-    // Admin config: allow authenticated users to read the superusers doc
-    // so the client can determine whether the signed-in user is a superuser.
     match /adminConfig/superusers {
       allow read: if request.auth != null;
-      // Allow write if you are already a superuser OR if you are initializing the doc (self-seeding)
       allow write: if request.auth != null && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
         isSuperUser() ||
@@ -44,13 +34,11 @@ service cloud.firestore {
       );
     }
 
-    // Admin Access List: Allow superusers to manage the email allowlist
     match /adminConfig/access {
       allow read: if request.auth != null;
       allow write: if isSuperUser();
     }
 
-    // Admins collection: allow admin to read their own doc and allow superusers to create/modify admins
     match /admins/{adminId} {
       allow read: if request.auth != null && (request.auth.uid == adminId || isAdmin());
       allow write: if request.auth != null && (
@@ -59,6 +47,55 @@ service cloud.firestore {
       );
     }
 
-    // Other public documents can be opened as needed
+    match /settings/{document} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /agents/{agentId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /adminUsers/{adminUserId} {
+      allow read: if request.auth != null;
+      allow write: if isSuperUser();
+    }
+
+    // --- Leads collection (public form submissions) ---
+    // We allow unauthenticated clients to create leads, but we validate the payload
+    match /leads/{leadId} {
+      allow read: if request.auth != null;
+
+      allow create: if (
+        // top-level shape
+        request.resource.data is map &&
+        // category is required and should be a string
+        (request.resource.data.category is string) &&
+        // timestamp should be a timestamp or string (many clients submit ISO strings)
+        ((request.resource.data.timestamp is timestamp) || (request.resource.data.timestamp is string)) &&
+        // data object must exist and contain required fields
+        (request.resource.data.data is map) &&
+        (request.resource.data.data.fullName is string && request.resource.data.data.fullName.size() > 1) &&
+        (request.resource.data.data.mobile is string && request.resource.data.data.mobile.size() >= 7) &&
+        (
+          // email is optional but if present must be a valid-looking email
+          !(request.resource.data.data.keys().hasAny(['email'])) ||
+          (request.resource.data.data.email is string && request.resource.data.data.email.matches('^.+@.+\\..+$'))
+        ) &&
+        (request.resource.data.data.source is string) &&
+        (request.resource.data.data.status is string)
+      );
+
+      // Allow updates only by admins or the assigned agent (if authenticated)
+      allow update: if isAdmin() || (
+        request.auth != null &&
+        resource.data.data.assignedTo != null &&
+        exists(/databases/$(database)/documents/agents/$(resource.data.data.assignedTo)) &&
+        get(/databases/$(database)/documents/agents/$(resource.data.data.assignedTo)).data.email == request.auth.token.email
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // Allow additional collections to be defined below as needed
   }
 }
