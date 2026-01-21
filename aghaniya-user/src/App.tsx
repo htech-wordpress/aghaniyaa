@@ -17,6 +17,7 @@ import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { Careers } from './pages/Careers';
 import { CertificatesAwards } from '@/pages/CertificatesAwards';
 import { Media } from '@/pages/Media';
+import { ScrollToTop } from '@/components/ScrollToTop';
 
 function App() {
   // Get base path from Vite config
@@ -24,6 +25,7 @@ function App() {
 
   return (
     <BrowserRouter basename={basePath}>
+      <ScrollToTop />
       <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow">
