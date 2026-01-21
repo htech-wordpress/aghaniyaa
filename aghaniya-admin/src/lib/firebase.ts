@@ -131,13 +131,18 @@ export async function isSuperUser(user: User | null): Promise<boolean> {
   if (!user) return false;
   if (!database) return false;
   try {
+    console.log('Checking isSuperUser for:', user.email);
     const snap = await get(child(ref(database), 'adminConfig/superusers'));
+    console.log('isSuperUser snap exists:', snap.exists());
     if (!snap.exists()) return false;
     const data = snap.val();
+    console.log('isSuperUser data:', data);
     const emails: string[] = data?.emails || [];
-    return Boolean(user.email && emails.includes(user.email));
+    const isMatch = Boolean(user.email && emails.includes(user.email));
+    console.log('isSuperUser match:', isMatch);
+    return isMatch;
   } catch (e) {
-    console.warn('isSuperUser error', e);
+    console.error('isSuperUser error', e);
     return false;
   }
 }

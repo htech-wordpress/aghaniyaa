@@ -41,29 +41,28 @@ async function main() {
     process.exit(1);
   }
 
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-  const db = admin.firestore();
-
-  const cfgRef = db.collection('adminConfig').doc('superusers');
-
-  // merge email into emails array
-  await db.runTransaction(async (tx) => {
-    const doc = await tx.get(cfgRef);
-    if (!doc.exists) {
-      tx.set(cfgRef, { emails: [email] });
-      console.log(`Added ${email} as the first superuser`);
-      return;
-    }
-    const data = doc.data() || {};
-    const emails = data.emails || [];
-    if (!emails.includes(email)) {
-      emails.push(email);
-      tx.update(cfgRef, { emails });
-      console.log(`Appended ${email} to superusers`);
-    } else {
-      console.log(`${email} is already a superuser`);
-    }
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://aghaniya-default-rtdb.firebaseio.com" // Explicitly set DB URL
   });
+  const db = admin.database(); // Use Realtime DB
+
+  const ref = db.ref('adminConfig/superusers');
+
+  const snapshot = await ref.once('value');
+  let emails = [];
+  if (snapshot.exists()) {
+    const data = snapshot.val();
+    emails = data.emails || [];
+  }
+
+  if (!emails.includes(email)) {
+    emails.push(email);
+    await ref.set({ emails });
+    console.log(`Added ${email} to superusers in Realtime DB`);
+  } else {
+    console.log(`${email} is already a superuser in Realtime DB`);
+  }
 
   console.log('Done');
   process.exit(0);
