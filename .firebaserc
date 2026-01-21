@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "aghaniya"
-  }
+  },
+  "targets": {
+    "aghaniya": {
+      "hosting": {
+        "aghaniyaenterprises": [
+          "aghaniyaenterprises"
+        ],
+        "aghaniya": [
+          "aghaniya"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
