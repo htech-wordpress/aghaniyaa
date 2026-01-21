@@ -18,7 +18,7 @@ export const teamMembers: TeamMember[] = [
         id: '1',
         name: 'Rakesh Kumar Mishra',
         position: 'Director',
-        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+        image: '',
         experience: '15+ Years',
         description: 'Rakesh Kumar Mishra is a seasoned financial professional with over 15 years of experience in the banking and finance industry. He specializes in helping individuals and businesses secure the best loan options tailored to their needs.',
         education: 'MBA in Finance, Chartered Financial Analyst (CFA)',
@@ -36,13 +36,13 @@ export const teamMembers: TeamMember[] = [
         ],
         email: 'rakesh.kumar@aghaniya.com',
         phone: '+91 70585 19247',
-        linkedin: 'https://linkedin.com/in/rakesh-kumar-mishra'
+        // linkedin: 'https://linkedin.com/in/rakesh-kumar-mishra'
     },
     {
         id: '2',
         name: 'Jibu Kumar',
         position: 'Director',
-        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+        image: '',
         experience: '12+ Years',
         description: 'Jibu Kumar brings extensive expertise in loan distribution and customer relations. With a proven track record of facilitating smooth loan processes, she ensures clients receive the best financial solutions with minimal hassle.',
         education: 'M.Com, Certified Credit Professional (CCP)',
@@ -60,6 +60,6 @@ export const teamMembers: TeamMember[] = [
         ],
         email: 'jiby.kumar@aghaniya.com',
         phone: '+91 62033 01532',
-        linkedin: 'https://linkedin.com/in/jibykumar'
+        // linkedin: 'https://linkedin.com/in/jibykumar'
     },
 ];

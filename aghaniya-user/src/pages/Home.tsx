@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { BannerSlider } from '@/components/BannerSlider';
 import { TeamPreview } from '@/components/TeamPreview';
 import { ScrollAnimation } from '@/components/ScrollAnimation';
-import { TestimonialMarquee } from '@/components/TestimonialMarquee';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Briefcase, MapPin, Trophy, Users, Gift, BookOpen, CheckCircle, Calculator } from 'lucide-react';
@@ -17,9 +17,9 @@ import { Building2 } from 'lucide-react';
 
 const stats = [
   { value: '10+', label: 'Years of Experience' },
-  { value: `${allPartners.length}+`, label: 'Financial Institution Partners' },
+  { value: '10+', label: 'Financial Institution Partners' },
   { value: '10+', label: 'Cities Through A Wide Branch Network' },
-  { value: '₹1.4 Lakh Cr+', label: 'In Loans Disbursed' },
+  { value: '₹100 Cr+', label: 'In Loans Disbursed' },
 ];
 
 const homePartners = allPartners.slice(0, 10);
@@ -42,26 +42,25 @@ export function Home() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero Section with Banner Slider */}
-      <section className="pb-12 md:pb-20 pt-8 md:pt-10">
-        <div className="container mx-auto px-4">
-          <BannerSlider />
-        </div>
+      <section className="pb-0 pt-0">
+        <BannerSlider />
       </section>
 
-      {/* We Facilitate Section - Overlapping Cards */}
-      <section className="container mx-auto px-4 -mt-16 relative z-10 mb-0 pb-20">
+      {/* We Facilitate Section */}
+      <section className="container mx-auto px-4 py-12 md:py-20 relative z-10">
         <ScrollAnimation direction="fade" delay={0.2}>
-          <div className="text-center mb-8 md:mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4 drop-shadow-sm bg-white/80 inline-block px-4 py-1.5 md:px-6 md:py-2 rounded-full backdrop-blur-sm shadow-sm">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-2xl md:text-5xl font-extrabold text-slate-900 mb-6 drop-shadow-sm tracking-tight leading-tight">
               We Facilitate
             </h2>
-            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto">
+            <div className="h-1.5 w-24 bg-gradient-to-r from-orange-500 to-red-600 mx-auto rounded-full mb-6"></div>
+            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed">
               Wide Range of Financial Products That suits your customer's needs!
             </p>
           </div>
         </ScrollAnimation>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {displayedLoans.map((loan, index) => {
             const Icon = loan.icon;
             // Define hypothetical interest rates for demo purposes
@@ -134,17 +133,17 @@ export function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 items-center">
             <ScrollAnimation direction="left" delay={0.2}>
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 md:mb-6 leading-tight">
+                <h2 className="text-2xl md:text-4xl font-bold text-slate-900 mb-4 md:mb-6 leading-tight">
                   <span className="text-primary">AGHANIYA ENTERPRISES</span> – India's Leading Loan Distribution Company
                 </h2>
                 <div className="text-base md:text-lg text-slate-600 space-y-4 md:space-y-6 leading-relaxed">
                   <p>
                     At AGHANIYA ENTERPRISES, we are committed to helping clients reach their financial objectives with tailored solutions.
-                    With a PAN India presence in over 4,000 cities, we stand as one of the nation's leading credit lending establishments.
+                    With a PAN India presence in over 10+ cities, we stand as one of the nation's leading credit lending establishments.
                   </p>
                   <p>
-                    Founded by financial professionals with over 25 years of experience, we've proudly served over 1 million clients,
-                    disbursing loans exceeding 1.4 Lakh Crores through our partnerships with 275+ Financial Institution Partners.
+                    Founded by financial professionals with over 10+ years of experience, we've proudly served over 1 million clients,
+                    disbursing loans exceeding ₹100 Cr+ through our partnerships with 10+ Financial Institution Partners.
                   </p>
                 </div>
               </div>
@@ -165,27 +164,42 @@ export function Home() {
       </section>
 
       {/* Bank Partners Section */}
-      <section className="bg-white py-12 md:py-20">
-        <div className="container mx-auto px-4">
+      <section className="py-12 md:py-24 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-50/50 rounded-full blur-3xl -z-10 opacity-50 transform translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-50/50 rounded-full blur-3xl -z-10 opacity-50 transform -translate-x-1/2 translate-y-1/2"></div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <ScrollAnimation direction="fade" delay={0.2}>
-            <div className="text-center mb-10 md:mb-16">
-              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2 md:mb-4">
+            <div className="text-center mb-12 md:mb-20">
+              <h2 className="text-2xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
                 Trusted by Top-Tier Lenders
               </h2>
-              <p className="text-base md:text-lg text-slate-600">
-                We partner with India's leading financial institutions
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto font-medium">
+                We partner with India's leading financial institutions to bring you the best offers.
               </p>
             </div>
           </ScrollAnimation>
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-8 mb-10">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-8 mb-12">
             {homePartners.map((partner, index) => (
-              <ScrollAnimation key={index} direction="scale" delay={index * 0.05} duration={0.5}>
-                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center h-32 group text-center hover:-translate-y-1">
-                  <div className="h-10 w-10 mb-3 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-primary/5 transition-colors">
-                    <Building2 className="h-5 w-5 text-slate-400 group-hover:text-primary transition-colors" />
+              <ScrollAnimation key={index} direction="up" delay={index * 0.05} duration={0.5}>
+                <div
+                  className={`
+                    p-6 rounded-2xl border transition-all duration-300 
+                    flex flex-col items-center justify-center h-40 group text-center 
+                    hover:-translate-y-2 hover:shadow-xl
+                    ${partner.bgColor || 'bg-white'} 
+                    ${partner.borderColor || 'border-slate-100'}
+                  `}
+                >
+                  <div className={`
+                    h-14 w-14 mb-4 rounded-full flex items-center justify-center 
+                    bg-white shadow-sm group-hover:shadow-md transition-all
+                  `}>
+                    <Building2 className={`h-7 w-7 ${partner.color || 'text-slate-400'}`} />
                   </div>
-                  <span className="text-xs md:text-sm font-semibold text-slate-700 leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                  <span className={`text-sm font-bold leading-tight line-clamp-2 ${partner.color ? partner.color.replace('text-', 'text-slate-800 ') : 'text-slate-700'}`}>
                     {partner.name}
                   </span>
                 </div>
@@ -193,10 +207,10 @@ export function Home() {
             ))}
           </div>
 
-          <ScrollAnimation direction="up" delay={0.4}>
+          <ScrollAnimation direction="up" delay={0.6}>
             <div className="text-center">
               <Link to="/partners">
-                <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white transition-all px-8">
+                <Button variant="outline" size="lg" className="border-2 border-slate-200 text-slate-700 hover:border-primary hover:text-primary hover:bg-white transition-all px-10 h-12 text-base font-semibold shadow-sm hover:shadow-md">
                   View All {allPartners.length}+ Partners
                 </Button>
               </Link>
@@ -210,12 +224,12 @@ export function Home() {
         <div className="container mx-auto px-4">
           <ScrollAnimation direction="fade" delay={0.2}>
             <div className="text-center mb-10 md:mb-16">
-              <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4">Why Choose AGHANIYA ENTERPRISES?</h2>
+              <h2 className="text-xl md:text-3xl font-bold mb-3 md:mb-4">Why Choose AGHANIYA ENTERPRISES?</h2>
               <p className="text-slate-400 text-sm md:text-base">Experience the difference with our premium services</p>
             </div>
           </ScrollAnimation>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
             {advantages.map((advantage, index) => {
               const Icon = advantage.icon;
               return (
@@ -244,7 +258,7 @@ export function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-12 md:py-20 bg-slate-50 overflow-hidden">
+      {/* <section className="py-12 md:py-20 bg-slate-50 overflow-hidden">
         <ScrollAnimation direction="fade" delay={0.2}>
           <div className="text-center mb-10 md:mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
@@ -257,7 +271,7 @@ export function Home() {
         </ScrollAnimation>
 
         <TestimonialMarquee />
-      </section>
+      </section> */}
 
       {/* Our Team Preview Section */}
       <section className="py-20 bg-white border-t border-slate-100">

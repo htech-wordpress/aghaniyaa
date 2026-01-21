@@ -37,7 +37,7 @@ export function OurTeam() {
                       alt={member.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/Assets/placeholder-img.svg';
+                        (e.target as HTMLImageElement).src = '/assets/placeholder-img.svg';
                       }}
                     />
                     <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent z-20">

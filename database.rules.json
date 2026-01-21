@@ -2,9 +2,21 @@
     "rules": {
         ".read": "auth != null",
         ".write": "auth != null",
+        "branches": {
+            ".read": true,
+            ".indexOn": [
+                "status"
+            ]
+        },
         "agents": {
             ".indexOn": [
                 "email"
+            ]
+        },
+        "leads": {
+            ".indexOn": [
+                "timestamp",
+                "category"
             ]
         },
         "adminUsers": {

@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { getDatabaseInstance, isSuperUser } from '@/lib/firebase';
 import { ref, get, push, set, update, remove, child } from 'firebase/database';
 import { UserPlus, Pencil, Trash2, ShieldAlert, Shield } from 'lucide-react';
+import { ADMIN_MODULES } from '@/config/modules';
 
 interface AdminUser {
   id: string;
@@ -17,6 +18,7 @@ interface AdminUser {
   department?: string;
   managerName?: string; // Manual input for director/manager name
   joiningDate?: string;
+  modules?: string[]; // Added modules
   status: 'active' | 'inactive';
   createdAt: string;
 }
@@ -37,6 +39,7 @@ export function AdminUsers() {
     department: '',
     managerName: '',
     joiningDate: new Date().toISOString().split('T')[0],
+    modules: [] as string[], // Default empty modules
     status: 'active' as 'active' | 'inactive',
   });
 
@@ -93,11 +96,23 @@ export function AdminUsers() {
     try {
       const adminsRef = ref(db, 'adminUsers');
       const snapshot = await get(adminsRef);
+      console.log('AdminUsers snapshot exists:', snapshot.exists());
+
+      // Debug: Check if data exists in 'admins' instead
+      const legacySnap = await get(ref(db, 'admins'));
+      console.log('Legacy "admins" path exists:', legacySnap.exists());
+      if (legacySnap.exists()) console.log('Legacy "admins" val:', legacySnap.val());
+
+      console.log('Connected to DB:', db.app.options.databaseURL);
+
       const adminsList: AdminUser[] = [];
 
       snapshot.forEach((childSnap) => {
-        adminsList.push({ id: childSnap.key!, ...childSnap.val() } as AdminUser);
+        const val = childSnap.val();
+        console.log('Fetched admin user:', childSnap.key, val);
+        adminsList.push({ id: childSnap.key!, ...val } as AdminUser);
       });
+      console.log('Total admins found:', adminsList.length);
 
       // Sort by createdAt desc if possible, otherwise by key/creation order?
       // Assuming createdAt exists
@@ -180,6 +195,7 @@ export function AdminUsers() {
       department: admin.department || '',
       managerName: admin.managerName || '',
       joiningDate: admin.joiningDate || new Date().toISOString().split('T')[0],
+      modules: admin.modules || [],
       status: admin.status,
     });
     setIsDialogOpen(true);
@@ -213,6 +229,7 @@ export function AdminUsers() {
       department: '',
       managerName: '',
       joiningDate: new Date().toISOString().split('T')[0],
+      modules: [],
       status: 'active',
     });
     setEditingAdmin(null);
@@ -358,10 +375,40 @@ export function AdminUsers() {
                       onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
                       className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="active">Active</option>
                       <option value="inactive">Inactive</option>
                     </select>
                   </div>
+
+                  <div className="md:col-span-2">
+                    <Label className="mb-2 block">Assigned Modules</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 border p-4 rounded-md bg-gray-50">
+                      {ADMIN_MODULES.filter(m => m.id !== 'superadmin').map((module) => (
+                        <div key={module.id} className="flex items-start space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`module-${module.id}`}
+                            checked={formData.modules?.includes(module.id)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setFormData(prev => ({
+                                ...prev,
+                                modules: checked
+                                  ? [...(prev.modules || []), module.id]
+                                  : (prev.modules || []).filter(id => id !== module.id)
+                              }));
+                            }}
+                            className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <Label htmlFor={`module-${module.id}`} className="text-sm font-normal cursor-pointer leading-tight">
+                            {module.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">Select the modules this admin is allowed to access.</p>
+                  </div>
+
+
                 </div>
 
                 <div className="flex justify-end gap-2 pt-4">

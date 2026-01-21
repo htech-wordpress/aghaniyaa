@@ -15,7 +15,7 @@ export const testimonials: Testimonial[] = [
         role: "Business Owner",
         rating: 5,
         text: "I was in need of INR 20 lakh for my business expansion. The process was incredibly smooth and the disbursal was quick. Highly recommended!",
-        avatar: "/Assets/avatar-1.png"
+        avatar: "/assets/avatar-1.png"
     },
     {
         id: 2,
@@ -23,7 +23,7 @@ export const testimonials: Testimonial[] = [
         role: "Software Engineer",
         rating: 5,
         text: "Getting a home loan was always a daunting task for me, but AGHANIYA ENTERPRISES made it simple. The team guided me through every step.",
-        avatar: "/Assets/avatar-2.png"
+        avatar: "/assets/avatar-2.png"
     },
     {
         id: 3,
@@ -31,7 +31,7 @@ export const testimonials: Testimonial[] = [
         role: "Entrepreneur",
         rating: 5,
         text: "I wanted quick fund disbursal and applied for a personal loan. The interest rates were competitive and the service was excellent.",
-        avatar: "/Assets/avatar-3.png"
+        avatar: "/assets/avatar-3.png"
     },
     {
         id: 4,
@@ -39,7 +39,7 @@ export const testimonials: Testimonial[] = [
         role: "Doctor",
         rating: 5,
         text: "The team at AGHANIYA ENTERPRISES is very professional. They helped me compare multiple offers and choose the best one for my car loan.",
-        avatar: "/Assets/avatar-4.png"
+        avatar: "/assets/avatar-4.png"
     },
     {
         id: 5,
@@ -47,7 +47,7 @@ export const testimonials: Testimonial[] = [
         role: "Freelancer",
         rating: 5,
         text: "Excellent service! I got my credit card approved within days. The rewards program they suggested fits my lifestyle perfectly.",
-        avatar: "/Assets/avatar-1.png"
+        avatar: "/assets/avatar-1.png"
     },
     {
         id: 6,
@@ -55,6 +55,6 @@ export const testimonials: Testimonial[] = [
         role: "Teacher",
         rating: 5,
         text: "Transparent process and helpful support staff. I took an education loan for my son, and they made the paperwork hassle-free.",
-        avatar: "/Assets/avatar-2.png"
+        avatar: "/assets/avatar-2.png"
     }
 ];

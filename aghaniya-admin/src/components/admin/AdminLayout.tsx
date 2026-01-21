@@ -2,16 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Home, Database, Mail, Briefcase, FileSearch, LogOut, Settings, Shield, Users, User, TrendingUp, Zap } from 'lucide-react';
+import { Home, Database, Mail, Briefcase, FileSearch, LogOut, Settings, Shield, Users, User, Zap } from 'lucide-react';
 import { onAuthChange, isSuperUser } from '@/lib/firebase';
 import { useAgent } from '@/contexts/AgentContext';
+import { useConfig } from '@/contexts/ConfigContext';
+import { ADMIN_MODULES } from '@/config/modules';
 
 export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState<any>(null);
   const [isSuper, setIsSuper] = useState(false);
-  const { currentAgent, isAgent: isAgentRole } = useAgent();
+  const { currentAgent, isAgent: isAgentRole, accessibleModules } = useAgent();
+  const { companySettings } = useConfig();
 
 
 
@@ -35,12 +38,18 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
     <div className="container mx-auto py-2">
       {/* App Header */}
       <header className="flex items-center justify-between mb-2 border-b border-gray-200 pb-2">
-        <a href="https://aghaniyaenterprises.web.app" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="bg-blue-600 p-2 rounded-lg shadow-sm">
-            <Briefcase className="h-6 w-6 text-white" />
-          </div>
+        <a href={companySettings.website || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          {companySettings.companyLogo ? (
+            <img src={companySettings.companyLogo} alt="Logo" className="h-10 w-auto object-contain" />
+          ) : (
+            <div className="bg-blue-600 p-2 rounded-lg shadow-sm">
+              <Briefcase className="h-6 w-6 text-white" />
+            </div>
+          )}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight leading-none">Aghaniya</h1>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight leading-none">
+              {companySettings.companyName || 'Aghaniya'}
+            </h1>
             <p className="text-xs text-gray-500 font-medium">Admin Portal</p>
           </div>
         </a>
@@ -140,44 +149,24 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
                     </Button>
                   </>
                 ) : (
-                  // Regular Admin Menu - Full menu
+                  // Dynamic Menu for Admins based on permissions
                   <>
-                    <Button variant={isActive('/dashboard') ? 'default' : 'ghost'} className="w-full justify-start py-3 px-3" onClick={() => navigate('/dashboard')}>
-                      <Home className="h-5 w-5 text-gray-700 mr-3" />
-                      <span className="text-sm text-gray-800">Dashboard</span>
-                    </Button>
-
-                    <Button variant={isActive('/performance-dashboard') ? 'default' : 'ghost'} className="w-full justify-start py-3 px-3" onClick={() => navigate('/performance-dashboard')}>
-                      <TrendingUp className="h-5 w-5 text-gray-700 mr-3" />
-                      <span className="text-sm text-gray-800">Performance</span>
-                    </Button>
-
-                    <Button variant={isActive('/leads/manual') ? 'default' : 'ghost'} className="w-full justify-start py-3 px-3" onClick={() => navigate('/leads/manual')}>
-                      <Database className="h-5 w-5 text-gray-700 mr-3" />
-                      <span className="text-sm text-gray-800">Manual Leads</span>
-                    </Button>
-
-                    <Button variant={isActive('/leads/website') ? 'default' : 'ghost'} className="w-full justify-start py-3 px-3" onClick={() => navigate('/leads/website')}>
-                      <FileSearch className="h-5 w-5 text-gray-700 mr-3" />
-                      <span className="text-sm text-gray-800">Website Leads</span>
-                    </Button>
-
-                    <Button variant={isActive('/leads/contacts') ? 'default' : 'ghost'} className="w-full justify-start py-3 px-3" onClick={() => navigate('/leads/contacts')}>
-                      <Mail className="h-5 w-5 text-gray-700 mr-3" />
-                      <span className="text-sm text-gray-800">Contact</span>
-                    </Button>
-
-                    <Button variant={isActive('/leads/careers') ? 'default' : 'ghost'} className="w-full justify-start py-3 px-3" onClick={() => navigate('/leads/careers')}>
-                      <Briefcase className="h-5 w-5 text-gray-700 mr-3" />
-                      <span className="text-sm text-gray-800">Careers</span>
-                    </Button>
-
-
-
-                    <Button variant={isActive('/agents') ? 'default' : 'ghost'} className="w-full justify-start py-3 px-3" onClick={() => navigate('/agents')}>
-                      <Users className="h-5 w-5 text-gray-700 mr-3" />
-                      <span className="text-sm text-gray-800">Agents</span>
-                    </Button>
+                    {ADMIN_MODULES.filter(module =>
+                      accessibleModules.includes(module.id) || accessibleModules.includes('*')
+                    ).map(module => {
+                      const Icon = module.icon;
+                      return (
+                        <Button
+                          key={module.id}
+                          variant={isActive(module.path) ? 'default' : 'ghost'}
+                          className="w-full justify-start py-3 px-3"
+                          onClick={() => navigate(module.path)}
+                        >
+                          <Icon className="h-5 w-5 text-gray-700 mr-3" />
+                          <span className="text-sm text-gray-800">{module.label}</span>
+                        </Button>
+                      );
+                    })}
                   </>
                 )}
               </div>
@@ -208,7 +197,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
 
       {/* Footer */}
       <footer className="mt-2 pt-2 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-        <p>&copy; {new Date().getFullYear()} Aghaniya. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} H-Tech Digital. All rights reserved.</p>
         <p>Managed by H-Tech Solutions</p>
       </footer>
     </div>

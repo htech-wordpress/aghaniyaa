@@ -87,7 +87,7 @@ export default function PartnerCard({ partner }: { partner: Partner }) {
 
   return (
     <Card
-      className={`p-4 text-center hover:shadow-md transition-shadow cursor-pointer bg-white`} 
+      className={`p-4 text-center hover:shadow-md transition-shadow cursor-pointer bg-white`}
       style={{ boxShadow: `0 8px 24px ${color}33`, borderTop: `4px solid ${color}22` }}
     >
       <CardContent className="flex items-center justify-center h-24 p-2">
@@ -102,7 +102,7 @@ export default function PartnerCard({ partner }: { partner: Partner }) {
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               if (!target.src.includes('placeholder-img.svg')) {
-                target.src = '/Assets/placeholder-img.svg';
+                target.src = '/assets/placeholder-img.svg';
                 return;
               }
               setErrored(true);

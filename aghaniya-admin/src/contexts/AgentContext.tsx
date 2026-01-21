@@ -15,6 +15,7 @@ interface Agent {
     phone?: string;
     department?: string;
     joiningDate?: string;
+    modules?: string[]; // Array of allowed module IDs
     status: 'active' | 'inactive';
     createdAt: string;
 }
@@ -25,6 +26,8 @@ interface AgentContextType {
     isAgent: boolean;
     isManager: boolean;
     isAdmin: boolean;
+    isSuperAdmin: boolean;
+    accessibleModules: string[];
     refreshAgent: () => Promise<void>;
 }
 
@@ -33,44 +36,64 @@ const AgentContext = createContext<AgentContextType | undefined>(undefined);
 export function AgentProvider({ children }: { children: ReactNode }) {
     const [currentAgent, setCurrentAgent] = useState<Agent | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+    const [accessibleModules, setAccessibleModules] = useState<string[]>([]);
 
     const loadAgentByEmail = async (email: string) => {
         const db = getDatabaseInstance();
         if (!db) return null;
 
         try {
+            // 1. Check 'agents' collection first
             const agentsRef = ref(db, 'agents');
-            // Assuming we index 'agents' by email or just scan (filtering by email)
-            // Realtime DB requires index on rules for performant queries on props
-            const q = query(
+            const agentQuery = query(
                 agentsRef,
                 orderByChild('email'),
                 equalTo(email)
             );
-            const snapshot = await get(q);
+            const agentSnap = await get(agentQuery);
 
-            if (!snapshot.exists()) {
-                // Also check if admin? Or logic strictly says this context is for Agents?
-                // The interface has role 'admin', so maybe we should check admins too if not found in agents?
-                // The original code only checked 'agents' collection. Sticking to that.
-                return null;
+            if (agentSnap.exists()) {
+                let foundAgent: Agent | null = null;
+                agentSnap.forEach((childSnap) => {
+                    const data = childSnap.val();
+                    if (data.status === 'active') {
+                        foundAgent = { id: childSnap.key!, ...data } as Agent;
+                    }
+                });
+                if (foundAgent) return foundAgent;
             }
 
-            // Snapshot can have multiple matches (though unique email is expected)
-            // It returns an object of keys
-            let foundAgent: Agent | null = null;
+            // 2. If not agent, check 'adminUsers' collection
+            const adminsRef = ref(db, 'adminUsers');
+            const adminQuery = query(
+                adminsRef,
+                orderByChild('email'),
+                equalTo(email)
+            );
+            const adminSnap = await get(adminQuery);
 
-            snapshot.forEach((childSnap) => {
-                const data = childSnap.val();
-                if (data.status === 'active') {
-                    foundAgent = { id: childSnap.key!, ...data } as Agent;
-                    return true; // Stop iteration? No, forEach in RB doesn't support break easily, but we take the first active one.
-                }
-            });
+            if (adminSnap.exists()) {
+                let foundAdmin: Agent | null = null;
+                adminSnap.forEach((childSnap) => {
+                    const data = childSnap.val();
+                    if (data.status === 'active') {
+                        // Cast admin user to Agent shape for consistent context
+                        foundAdmin = {
+                            id: childSnap.key!,
+                            agentId: data.adminId,
+                            role: 'admin',
+                            modules: data.modules || [], // Load assigned modules
+                            ...data
+                        } as Agent;
+                    }
+                });
+                if (foundAdmin) return foundAdmin;
+            }
 
-            return foundAgent;
+            return null;
         } catch (error) {
-            console.error('Error loading agent:', error);
+            console.error('Error loading user profile:', error);
             return null;
         }
     };
@@ -80,10 +103,34 @@ export function AgentProvider({ children }: { children: ReactNode }) {
         const user = auth.currentUser;
 
         if (user?.email) {
+            // Check super admin status
+            const superUser = await (await import('@/lib/firebase')).isSuperUser(user);
+            setIsSuperAdmin(superUser);
+
             const agent = await loadAgentByEmail(user.email);
             setCurrentAgent(agent);
+
+            // Cast to any to bypass TS inference issues in build
+            const agentInLoop: any = agent;
+
+            if (superUser) {
+                setAccessibleModules(['*']); // All access
+            } else if (agentInLoop?.role === 'admin' && agentInLoop?.modules) {
+                setAccessibleModules(agentInLoop.modules);
+                console.log('AgentContext: Assigned modules for', user.email, agentInLoop.modules);
+            } else if (agentInLoop?.role === 'manager') {
+                // Default manager modules
+                setAccessibleModules(['dashboard', 'team_dashboard', 'leads_manual', 'leads_website', 'leads_contacts', 'leads_careers', 'agents']);
+            } else if (agentInLoop?.role === 'agent') {
+                // Default agent modules
+                setAccessibleModules(['dashboard', 'my_leads', 'user_profile']);
+            } else {
+                setAccessibleModules([]);
+            }
         } else {
             setCurrentAgent(null);
+            setIsSuperAdmin(false);
+            setAccessibleModules([]);
         }
     };
 
@@ -94,10 +141,31 @@ export function AgentProvider({ children }: { children: ReactNode }) {
             setLoading(true);
 
             if (user?.email) {
+                const superUser = await (await import('@/lib/firebase')).isSuperUser(user);
+                setIsSuperAdmin(superUser);
+
                 const agent = await loadAgentByEmail(user.email);
-                setCurrentAgent(agent);
+                setCurrentAgent(agent); // Update state!
+
+                // Cast to any to bypass TS inference issues in build
+                const agentInLoop: any = agent;
+
+                if (superUser) {
+                    setAccessibleModules(['*']); // All access
+                } else if (agentInLoop?.role === 'admin' && agentInLoop?.modules) {
+                    setAccessibleModules(agentInLoop.modules);
+                    console.log('AgentContext (Effect): Assigned modules for', user.email, agentInLoop.modules);
+                } else if (agentInLoop?.role === 'manager') {
+                    setAccessibleModules(['dashboard', 'team_dashboard', 'leads_manual', 'leads_website', 'leads_contacts', 'leads_careers', 'agents']);
+                } else if (agentInLoop?.role === 'agent') {
+                    setAccessibleModules(['dashboard', 'my_leads', 'user_profile']);
+                } else {
+                    setAccessibleModules([]);
+                }
             } else {
                 setCurrentAgent(null);
+                setIsSuperAdmin(false);
+                setAccessibleModules([]);
             }
 
             setLoading(false);
@@ -112,6 +180,8 @@ export function AgentProvider({ children }: { children: ReactNode }) {
         isAgent: currentAgent?.role === 'agent',
         isManager: currentAgent?.role === 'manager',
         isAdmin: currentAgent?.role === 'admin',
+        isSuperAdmin,
+        accessibleModules,
         refreshAgent,
     };
 

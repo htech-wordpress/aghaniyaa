@@ -11,12 +11,13 @@ import { EMICalculator } from '@/pages/EMICalculator';
 import { CibilCheck } from '@/pages/CibilCheck';
 import { OurTeam } from '@/pages/OurTeam';
 
-import { BecomeDSA } from '@/pages/BecomeDSA';
+// import { BecomeDSA } from '@/pages/BecomeDSA';
 import { Testimonials } from '@/pages/Testimonials';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { EMICalculatorButton } from '@/components/EMICalculatorButton';
 import { Careers } from './pages/Careers';
-import { CertificatesAwards } from '@/pages/CertificatesAwards';
-import { Media } from '@/pages/Media';
+// import { CertificatesAwards } from '@/pages/CertificatesAwards';
+// import { Media } from '@/pages/Media';
 import { Partners } from '@/pages/Partners';
 import { ScrollToTop } from '@/components/ScrollToTop';
 
@@ -27,7 +28,7 @@ function App() {
   return (
     <BrowserRouter basename={basePath}>
       <ScrollToTop />
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen overflow-x-hidden w-full">
         <Header />
         <main className="flex-grow">
           <Routes>
@@ -41,14 +42,15 @@ function App() {
             <Route path="/cibil-check" element={<CibilCheck />} />
             <Route path="/our-team" element={<OurTeam />} />
             <Route path="/careers" element={<Careers />} />
-            <Route path="/becomedsa" element={<BecomeDSA />} />
+            {/* <Route path="/becomedsa" element={<BecomeDSA />} /> */}
             <Route path="/testimonials" element={<Testimonials />} />
-            <Route path="/certificates-awards" element={<CertificatesAwards />} />
-            <Route path="/media" element={<Media />} />
+            {/* <Route path="/certificates-awards" element={<CertificatesAwards />} />
+            <Route path="/media" element={<Media />} /> */}
             <Route path="/partners" element={<Partners />} />
           </Routes>
         </main>
         <Footer />
+        <EMICalculatorButton />
         <WhatsAppButton />
       </div>
     </BrowserRouter>

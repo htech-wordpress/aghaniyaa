@@ -1,95 +1,15 @@
-import { Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { onAuthChange, isAdminUser, isSuperUser, getDatabaseInstance } from '@/lib/firebase';
-import { ref, query, orderByChild, equalTo, get } from 'firebase/database';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAgent } from '@/contexts/AgentContext';
 import { RefreshCw } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requiredModule?: string;
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const [loading, setLoading] = useState(true);
-  const [authorized, setAuthorized] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = onAuthChange(async (user) => {
-      if (!user) {
-        setAuthorized(false);
-        setLoading(false);
-        return;
-      }
-
-      // Check if user is SuperAdmin
-      const superUser = await isSuperUser(user);
-      if (superUser) {
-        setAuthorized(true);
-        setLoading(false);
-        return;
-      }
-
-      // Check if user is in old admin system
-      const isAd = await isAdminUser(user);
-      if (isAd) {
-        setAuthorized(true);
-        setLoading(false);
-        return;
-      }
-
-      // Check if user is in adminUsers collection
-      const db = getDatabaseInstance();
-      if (db && user.email) {
-        const adminUsersRef = ref(db, 'adminUsers');
-        const adminQuery = query(
-          adminUsersRef,
-          orderByChild('email'),
-          equalTo(user.email)
-        );
-        const adminSnapshot = await get(adminQuery);
-
-        let validAdmin = false;
-        adminSnapshot.forEach((childSnap) => {
-          if (childSnap.val().status === 'active') {
-            validAdmin = true;
-          }
-        });
-
-        if (validAdmin) {
-          setAuthorized(true);
-          setLoading(false);
-          return;
-        }
-
-        // Check if user is in agents collection
-        const agentsRef = ref(db, 'agents');
-        const agentQuery = query(
-          agentsRef,
-          orderByChild('email'),
-          equalTo(user.email)
-        );
-        const agentSnapshot = await get(agentQuery);
-
-        let validAgent = false;
-        agentSnapshot.forEach((childSnap) => {
-          if (childSnap.val().status === 'active') {
-            validAgent = true;
-          }
-        });
-
-        if (validAgent) {
-          setAuthorized(true);
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Not authorized
-      setAuthorized(false);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
+export function ProtectedRoute({ children, requiredModule }: ProtectedRouteProps) {
+  const { currentAgent, isSuperAdmin, accessibleModules, loading } = useAgent();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -102,8 +22,23 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!authorized) {
-    return <Navigate to="/login" replace />;
+  // Not logged in
+  if (!currentAgent && !isSuperAdmin) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Check module access if a specific module is required
+  if (requiredModule) {
+    const hasAccess =
+      isSuperAdmin ||
+      accessibleModules.includes('*') ||
+      accessibleModules.includes(requiredModule);
+
+    if (!hasAccess) {
+      console.warn(`Access denied to module: ${requiredModule} for user: ${currentAgent?.email}`);
+      // Redirect to the first accessible module or dashboard
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return <>{children}</>;

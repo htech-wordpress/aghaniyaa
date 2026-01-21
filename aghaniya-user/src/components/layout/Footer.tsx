@@ -89,11 +89,15 @@ export function Footer() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4" />
-                <span>1800-266-7576</span>
+                <span>+91 70585 19247</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                <span>+91 62033 01532</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                <span>support@aghaniya.com</span>
+                <span>aghaniyaenterprises@gmail.com</span>
               </li>
               <li className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 mt-1" />

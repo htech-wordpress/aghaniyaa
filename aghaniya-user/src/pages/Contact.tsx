@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollAnimation } from '@/components/ScrollAnimation';
-import { Phone, Mail, MapPin, Clock, Facebook, Twitter, Instagram, Linkedin, Youtube } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, Facebook, Twitter, Instagram, Linkedin, Youtube, Building } from 'lucide-react';
 import { saveLeadAsync } from '@/lib/leads';
+import { subscribeToBranches, type Branch } from '@/lib/branches';
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -24,6 +25,15 @@ export function Contact() {
     loanAmount: '',
     loanType: '',
   });
+
+  const [branches, setBranches] = useState<Branch[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToBranches((data) => {
+      setBranches(data);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -403,6 +413,57 @@ export function Contact() {
             </div>
           </ScrollAnimation>
         </div>
+
+        {/* Our Branches Section */}
+        {
+          branches.length > 0 && (
+            <ScrollAnimation direction="up" delay={0.5} className="mt-16 mb-8">
+              <h2 className="text-3xl font-bold text-slate-800 text-center mb-8">Our Active Branches</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {branches.map((branch) => (
+                  <Card key={branch.id} className="border-0 shadow-lg hover:shadow-xl transition-shadow bg-white overflow-hidden">
+                    <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Building className="h-5 w-5 text-primary" />
+                        </div>
+                        <CardTitle className="text-lg text-slate-800">{branch.name}</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                      <div className="flex items-start gap-3">
+                        <MapPin className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
+                        <p className="text-slate-600 text-sm">
+                          {branch.address}, <br />
+                          {branch.city}, {branch.state}
+                        </p>
+                      </div>
+                      {branch.phone && (
+                        <div className="flex items-center gap-3">
+                          <Phone className="h-4 w-4 text-primary" />
+                          <a href={`tel:${branch.phone}`} className="text-sm text-slate-600 hover:text-primary transition-colors">
+                            {branch.phone}
+                          </a>
+                        </div>
+                      )}
+                      {branch.mapLink && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full mt-2"
+                          onClick={() => window.open(branch.mapLink, '_blank')}
+                        >
+                          <MapPin className="h-4 w-4 mr-2" />
+                          View on Map
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollAnimation>
+          )
+        }
 
         {/* Map Section */}
         <ScrollAnimation direction="up" delay={0.6} className="mt-8">
