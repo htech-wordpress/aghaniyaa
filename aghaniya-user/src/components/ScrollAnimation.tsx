@@ -8,6 +8,7 @@ interface ScrollAnimationProps {
   delay?: number;
   duration?: number;
   className?: string;
+  once?: boolean;
 }
 
 export function ScrollAnimation({
@@ -15,10 +16,11 @@ export function ScrollAnimation({
   direction = 'up',
   delay = 0,
   duration = 0.6,
-  className = ''
+  className = '',
+  once = true
 }: ScrollAnimationProps) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.1 });
+  const isInView = useInView(ref, { once, amount: 0.2 });
 
   const getInitialState = () => {
     switch (direction) {
