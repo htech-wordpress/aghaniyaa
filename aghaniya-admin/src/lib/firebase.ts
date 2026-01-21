@@ -19,9 +19,10 @@ let database: ReturnType<typeof getDatabase> | null = null;
 let storage: ReturnType<typeof getStorage> | null = null;
 
 if (firebaseConfig.apiKey) {
+  // console.log('Initializing Admin Firebase with DB URL:', firebaseConfig.databaseURL);
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
-  database = getDatabase(app);
+  database = getDatabase(app, firebaseConfig.databaseURL);
   storage = getStorage(app);
 } else {
   console.warn('Firebase not configured. Set VITE_FIREBASE_* environment variables to enable Firebase.');

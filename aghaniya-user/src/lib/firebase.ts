@@ -19,9 +19,11 @@ let database: ReturnType<typeof getDatabase> | null = null;
 let storage: ReturnType<typeof getStorage> | null = null;
 
 if (firebaseConfig.apiKey) {
+  // console.log('Initializing Firebase with DB URL:', firebaseConfig.databaseURL); // Debug logging
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
-  database = getDatabase(app);
+  // Explicitly pass databaseURL to handle potential config loading issues
+  database = getDatabase(app, firebaseConfig.databaseURL);
   storage = getStorage(app);
 } else {
   console.warn('Firebase not configured. Set VITE_FIREBASE_* environment variables to enable Firebase.');
