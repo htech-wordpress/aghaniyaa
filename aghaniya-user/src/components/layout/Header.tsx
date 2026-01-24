@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Menu, X, Calculator, ChevronDown } from 'lucide-react';
+import { Menu, X, Calculator, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +15,7 @@ import { useEffect } from 'react';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState<Record<string, boolean>>({});
   const [stats, setStats] = useState<CompanyStats>(defaultStats);
 
   useEffect(() => {
@@ -131,46 +132,67 @@ export function Header() {
                 Home
                 <span className="text-slate-400">→</span>
               </Link>
-              <Link
-                to="/loans"
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 text-lg font-medium text-slate-900"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Loans
-                <span className="text-slate-400">→</span>
-              </Link>
-              {/* <Link
-                to="/cibil-check"
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 text-lg font-medium text-slate-900"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Check CIBIL
-                <span className="text-slate-400">→</span>
-              </Link> */}
-              {/* <Link
-                to="/credit-cards"
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 text-lg font-medium text-slate-900"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Credit Cards
-                <span className="text-slate-400">→</span>
-              </Link> */}
-              <Link
-                to="/about"
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 text-lg font-medium text-slate-900"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                About Us
-                <span className="text-slate-400">→</span>
-              </Link>
-              <Link
-                to="/our-team"
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 text-lg font-medium text-slate-900"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Our Team
-                <span className="text-slate-400">→</span>
-              </Link>
+              {/* Loans Accordion */}
+              <div className="border-b border-gray-100">
+                <button
+                  onClick={() => setMobileExpanded(prev => ({ ...prev, loans: !prev.loans }))}
+                  className="flex items-center justify-between w-full p-3 text-lg font-medium text-slate-900"
+                >
+                  Loans
+                  {mobileExpanded.loans ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
+                </button>
+                {mobileExpanded.loans && (
+                  <div className="bg-slate-50 px-4 py-2 space-y-2">
+                    <Link
+                      to="/loans"
+                      className="block p-2 text-base font-medium text-slate-700 hover:text-primary"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      View All Loans
+                    </Link>
+                    {featuredLoans.length > 0 && <div className="h-px bg-slate-200 my-1" />}
+                    {featuredLoans.map((loan) => (
+                      <Link
+                        key={loan.id}
+                        to={loan.route || `/loans/${loan.id}`}
+                        className="block p-2 text-sm text-slate-600 hover:text-primary"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {loan.title}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Company Accordion */}
+              <div className="border-b border-gray-100">
+                <button
+                  onClick={() => setMobileExpanded(prev => ({ ...prev, company: !prev.company }))}
+                  className="flex items-center justify-between w-full p-3 text-lg font-medium text-slate-900"
+                >
+                  Company
+                  {mobileExpanded.company ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
+                </button>
+                {mobileExpanded.company && (
+                  <div className="bg-slate-50 px-4 py-2 space-y-2">
+                    <Link
+                      to="/about"
+                      className="block p-2 text-base font-medium text-slate-700 hover:text-primary"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      About Us
+                    </Link>
+                    <Link
+                      to="/our-team"
+                      className="block p-2 text-base font-medium text-slate-700 hover:text-primary"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Our Team
+                    </Link>
+                  </div>
+                )}
+              </div>
               {/* <Link
                 to="/testimonials"
                 className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 text-lg font-medium text-slate-900"
