@@ -14,7 +14,7 @@ export function OurTeam() {
       <div className="bg-hero-gradient py-12 md:py-20">
         <div className="container mx-auto px-4 text-center">
           <ScrollAnimation direction="scale" delay={0.2}>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Our CMD Desk</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Our Directors</h1>
             <p className="text-xl text-slate-300 max-w-3xl mx-auto">
               Meet our experienced financial experts dedicated to helping you achieve your financial goals.
             </p>
@@ -31,11 +31,11 @@ export function OurTeam() {
                 <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col border-0 shadow-lg bg-white h-full group">
                   {/* Image at Top */}
                   <div className="relative w-full h-64 md:h-80 overflow-hidden">
-                    <div className="absolute inset-0 bg-primary/20 group-hover:bg-primary/10 transition-colors z-10" />
+                    {/* Removed hover overlay */}
                     <img
                       src={member.image}
                       alt={member.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      className="w-full h-full object-cover object-[50%_38%] transition-transform duration-700"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/assets/placeholder-img.svg';
                       }}

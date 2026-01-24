@@ -45,7 +45,7 @@ export function BecomeDSA() {
                 source: 'become-dsa-page',
             });
             alert(
-                'Thank you for your interest in building your career as a DSA with AGHANIYA ENTERPRISES. Our HR team will contact you soon.'
+                'Thank you for your interest in building your career as a DSA with Aghaniya Enterprises LLP. Our HR team will contact you soon.'
             );
             setFormData({
                 fullName: '',
@@ -70,7 +70,7 @@ export function BecomeDSA() {
                     <ScrollAnimation direction="fade" delay={0.2}>
                         <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Become a DSA</h1>
                         <p className="text-xl text-slate-300 max-w-3xl mx-auto mb-4">
-                            Partner with AGHANIYA ENTERPRISES and grow your business in financial distribution.
+                            Partner with Aghaniya Enterprises LLP and grow your business in financial distribution.
                         </p>
                     </ScrollAnimation>
                 </div>

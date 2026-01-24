@@ -9,5 +9,8 @@
     "deploy:user": "firebase deploy --project aghaniya --only hosting:aghaniyaenterprises",
     "deploy:admin": "firebase deploy --project aghaniya --only hosting:aghaniya",
     "deploy:all": "firebase deploy --project aghaniya --only hosting"
+  },
+  "devDependencies": {
+    "firebase-admin": "^13.6.0"
   }
 }

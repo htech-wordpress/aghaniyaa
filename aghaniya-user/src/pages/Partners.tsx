@@ -22,7 +22,7 @@ export function Partners() {
                         <ScrollAnimation key={index} direction="up" delay={(index % 4) * 0.05} duration={0.4} className="h-full">
                             <div
                                 className={`
-                                    p-6 rounded-2xl border transition-all duration-300 h-full 
+                                    p-4 rounded-2xl border transition-all duration-300 h-28
                                     flex flex-col items-center justify-center text-center 
                                     hover:-translate-y-2 hover:shadow-xl
                                     ${partner.bgColor || 'bg-white'} 
@@ -31,14 +31,36 @@ export function Partners() {
                                 `}
                             >
                                 <div className={`
-                                    h-16 w-16 mb-4 rounded-full flex items-center justify-center 
-                                    bg-white shadow-sm group-hover:shadow-md transition-all
+                                    flex items-center justify-center transition-all
+                                    ${partner.logo ? 'h-full w-full' : 'h-12 w-12 mb-3 rounded-full bg-white shadow-sm group-hover:shadow-md'}
                                 `}>
-                                    <Building2 className={`h-8 w-8 ${partner.color || 'text-slate-400'}`} />
+                                    {partner.logo ? (
+                                        <img
+                                            src={partner.logo}
+                                            alt={partner.name}
+                                            className="h-full w-full object-contain p-2"
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                                const icon = e.currentTarget.parentElement?.querySelector('svg');
+                                                if (icon) icon.style.display = 'block';
+                                            }}
+                                        />
+                                    ) : (
+                                        <Building2 className={`h-6 w-6 ${partner.color || 'text-slate-400'}`} />
+                                    )}
+                                    {/* Fallback icon if image fails */}
+                                    {partner.logo && (
+                                        <Building2
+                                            className="h-8 w-8 hidden text-slate-300"
+                                            style={{ display: 'none' }}
+                                        />
+                                    )}
                                 </div>
-                                <h3 className={`font-bold text-sm md:text-base leading-tight ${partner.color ? partner.color.replace('text-', 'text-slate-800 ') : 'text-slate-700'}`}>
-                                    {partner.name}
-                                </h3>
+                                {!partner.logo && (
+                                    <h3 className={`font-bold text-xs md:text-sm leading-tight ${partner.color ? partner.color.replace('text-', 'text-slate-800 ') : 'text-slate-700'}`}>
+                                        {partner.name}
+                                    </h3>
+                                )}
                             </div>
                         </ScrollAnimation>
                     ))}

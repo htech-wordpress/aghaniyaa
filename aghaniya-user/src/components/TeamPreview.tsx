@@ -25,12 +25,13 @@ export function TeamPreview() {
               <Card3D intensity={15}>
                 <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col border-0 shadow-lg bg-white h-full group">
                   {/* Image at Top */}
-                  <div className="relative w-full h-64 md:h-80 overflow-hidden">
-                    <div className="absolute inset-0 bg-primary/20 group-hover:bg-primary/10 transition-colors z-10" />
+                  {/* Image at Top */}
+                  <div className="relative w-full h-80 md:h-96 overflow-hidden">
+                    {/* Removed hover overlay */}
                     <img
                       src={member.image}
                       alt={member.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      className="w-full h-full object-cover object-[50%_40%] transition-transform duration-700"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/assets/placeholder-img.svg';
                       }}
@@ -60,8 +61,8 @@ export function TeamPreview() {
                         </div>
                       </div>
 
-                      {/* Description */}
-                      <p className="text-slate-600 leading-relaxed text-sm border-l-2 border-primary/30 pl-4 italic line-clamp-4">
+                      {/* Description - Fixed Height for Alignment */}
+                      <p className="text-slate-600 leading-relaxed text-sm border-l-2 border-primary/30 pl-4 italic line-clamp-4 min-h-[6.5rem]">
                         "{member.description}"
                       </p>
                     </div>

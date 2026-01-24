@@ -23,6 +23,9 @@
             ".indexOn": [
                 "email"
             ]
+        },
+        "settings": {
+            ".read": true
         }
     }
 }

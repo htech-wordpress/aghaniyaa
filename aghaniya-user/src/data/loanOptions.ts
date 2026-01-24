@@ -23,9 +23,17 @@ export interface LoanOption {
     description: string;
     icon: any;
     category: string;
+    features?: string[];
+    eligibility?: string[];
+    documents?: string[];
+    interestRate?: string;
 }
 
 const generateId = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+const genericFeatures = ['Quick Disbursal', 'Minimal Documentation', 'Competitive Interest Rates', 'Flexible Tenure'];
+const genericEligibility = ['Age: 21-60 years', 'CIBIL Score: 700+', 'Stable Income Source'];
+const genericDocuments = ['KYC Documents', 'Bank Statements (Last 6 Months)', 'Income Proof'];
 
 const descriptions: Record<string, string> = {
     'home-loan': 'Your Dream Home Awaits - Explore Our Range Of Home Loan Products. Get the best interest rates and flexible repayment options.',
@@ -38,13 +46,62 @@ const descriptions: Record<string, string> = {
 };
 
 export const loanOptions: LoanOption[] = [
-    { title: "Home Loan", icon: Home, category: "home" },
-    { title: "Personal Loan", icon: Briefcase, category: "personal" },
-    { title: "Business Loan", icon: Building2, category: "business" },
-    { title: "LAP", icon: Landmark, category: "property" },
-    { title: "Education Loan", icon: GraduationCap, category: "education" },
-    { title: "Auto Loan", icon: Car, category: "vehicle" },
-    { title: "Gold loan", icon: Gem, category: "gold" },
+    {
+        title: "Home Loan",
+        icon: Home,
+        category: "home",
+        features: ['Interest Rates starting @ 8.50%', 'Tenure up to 30 years', 'No Hidden Charges', 'Doorstep Service'],
+        eligibility: ['Salaried / Self-Employed', 'Age 21-65', 'Credit Score > 700'],
+        documents: ['Identity Proof (Aadhar/PAN)', 'Address Proof', 'Salary Slips / ITR', 'Property Documents']
+    },
+    {
+        title: "Personal Loan",
+        icon: Briefcase,
+        category: "personal",
+        features: ['Instant Approval', 'No Collateral Required', 'Flexible Repayment (12-60 months)', 'Paperless Process'],
+        eligibility: ['Min Salary: ₹25,000', 'Age 21-58', 'Work Experience: 2+ Years'],
+        documents: ['PAN Card', 'Aadhar Card', 'Last 3 Months Bank Statement', 'Salary Slips']
+    },
+    {
+        title: "Business Loan",
+        icon: Building2,
+        category: "business",
+        features: ['Loans up to ₹5 Crores', 'Collateral-free options available', 'Overdraft Facility', 'Flexible EMI'],
+        eligibility: ['Business Vintage > 3 Years', 'Turnover > ₹40 Lakhs', 'Profitable Business'],
+        documents: ['GST Returns', 'Audited Financials', 'KYC of Directors', 'Business Proof']
+    },
+    {
+        title: "LAP",
+        icon: Landmark,
+        category: "property",
+        features: ['High LTV Ratio', 'Low Interest Rates', 'Longer Tenure (up to 15 years)', 'Use funds for any purpose'],
+        eligibility: ['Property should be free of disputes', 'Income sufficiency', 'Good Credit History'],
+        documents: ['Property Papers', 'Income Proof', 'KYC', 'Bank Statements']
+    },
+    {
+        title: "Education Loan",
+        icon: GraduationCap,
+        category: "education",
+        features: ['Up to 100% Financing', 'Moratorium Period available', 'Tax Benefits under Sec 80E', 'Co-applicant required'],
+        eligibility: ['Confirmed Admission', 'Co-applicant Income', 'Academic Record'],
+        documents: ['Admission Letter', 'Fee Structure', 'KYC of Student & Parent', 'Income Proof of Parent']
+    },
+    {
+        title: "Auto Loan",
+        icon: Car,
+        category: "vehicle",
+        features: ['Up to 100% On-Road Funding', 'Attractive Rates', 'Tenure up to 7 Years', 'Pre-approved offers'],
+        eligibility: ['Salaried / Business', 'Age 21+', 'Income > ₹3 Lakhs p.a.'],
+        documents: ['KYC', 'Income Proof', 'Vehicle Quotation', 'Bank Statements']
+    },
+    {
+        title: "Gold loan",
+        icon: Gem,
+        category: "gold",
+        features: ['Instant Cash', 'Rate per gram as per market', 'Pay only Interest option', 'Safety of Ornaments'],
+        eligibility: ['Age 18+', 'Owner of Gold Ornaments'],
+        documents: ['KYC Only']
+    },
     { title: "Doctor Loan", icon: Stethoscope, category: "professional" },
 
     { title: "Unsecured DoD", icon: Shield, category: "business" },
@@ -106,6 +163,9 @@ export const loanOptions: LoanOption[] = [
     return {
         ...opt,
         id,
-        description: descriptions[id] || `Apply for ${opt.title} with Aghaniya Enterprises. Quick approval and competitive rates.`
+        description: descriptions[id] || `Apply for ${opt.title} with Aghaniya Enterprises LLP. Quick approval and competitive rates.`,
+        features: opt.features || genericFeatures,
+        eligibility: opt.eligibility || genericEligibility,
+        documents: opt.documents || genericDocuments,
     };
 });

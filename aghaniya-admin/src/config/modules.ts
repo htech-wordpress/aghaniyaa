@@ -89,4 +89,11 @@ export const ADMIN_MODULES: AdminModule[] = [
         icon: Shield,
         description: 'Global system configuration'
     },
+    {
+        id: 'loans',
+        label: 'Loan Products',
+        path: '/loans',
+        icon: Briefcase,
+        description: 'Manage loan products and details'
+    },
 ];

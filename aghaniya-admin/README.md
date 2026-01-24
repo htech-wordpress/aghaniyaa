@@ -1,6 +1,6 @@
 # Aghaniya Admin Panel
 
-Aghaniya Admin is a web admin panel for Aghaniya Enterprises — a financial services platform that centralizes lead intake, processing, user and role management, import/export workflows, and application settings.
+Aghaniya Admin is a web admin panel for Aghaniya Enterprises LLP — a financial services platform that centralizes lead intake, processing, user and role management, import/export workflows, and application settings.
 
 ---
 

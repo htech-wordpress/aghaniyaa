@@ -10,6 +10,7 @@ import { ScrollAnimation } from '@/components/ScrollAnimation';
 import { Phone, Mail, MapPin, Clock, Facebook, Twitter, Instagram, Linkedin, Youtube, Building } from 'lucide-react';
 import { saveLeadAsync } from '@/lib/leads';
 import { subscribeToBranches, type Branch } from '@/lib/branches';
+import { subscribeToStats, type CompanyStats, defaultStats } from '@/lib/stats';
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -27,12 +28,19 @@ export function Contact() {
   });
 
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [stats, setStats] = useState<CompanyStats>(defaultStats);
 
   useEffect(() => {
-    const unsubscribe = subscribeToBranches((data) => {
+    const unsubBranches = subscribeToBranches((data) => {
       setBranches(data);
     });
-    return () => unsubscribe();
+    const unsubStats = subscribeToStats((data) => {
+      setStats(data);
+    });
+    return () => {
+      unsubBranches();
+      unsubStats();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,7 +93,7 @@ export function Contact() {
       <div className="bg-hero-gradient py-12 md:py-20">
         <div className="container mx-auto px-4 text-center">
           <ScrollAnimation direction="fade" delay={0.2}>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Contact AGHANIYA ENTERPRISES</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Contact Aghaniya Enterprises LLP</h1>
             <p className="text-xl text-slate-300 max-w-2xl mx-auto">
               Get in touch with us for any queries or assistance. We are here to help!
             </p>
@@ -337,29 +345,36 @@ export function Contact() {
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-4">
-                    <div className="h-10 w-10 rounded-full bg-slate-800 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="h-5 w-5 text-primary" />
+                  {stats.addresses && stats.addresses.map((address) => (
+                    <div key={address.id} className="flex items-start gap-4">
+                      <div className="h-10 w-10 rounded-full bg-slate-800 flex items-center justify-center flex-shrink-0">
+                        <MapPin className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg mb-1 text-slate-100">{address.label}</h3>
+                        <p className="text-sm text-slate-400 leading-relaxed">
+                          {address.value}
+                        </p>
+                        {address.mapLink && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-3 border-slate-700 text-slate-300 hover:bg-white hover:text-slate-900 transition-colors bg-transparent h-8"
+                            onClick={() => window.open(address.mapLink, '_blank')}
+                          >
+                            <MapPin className="h-3.5 w-3.5 mr-2" />
+                            Get Directions
+                          </Button>
+                        )}
+                        {address.phone && (
+                          <div className="mt-2 text-sm text-slate-300 flex items-center gap-2">
+                            <Phone className="h-3.5 w-3.5 text-primary" />
+                            {address.phone}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-1 text-slate-100">Head Office</h3>
-                      <p className="text-sm text-slate-400 leading-relaxed">
-                        Aghaniya Enterprises LLP, <br />
-                        Sohrab Hall, 2nd Floor, <br />
-                        Near Pune Station, <br />
-                        Pune - 411001, Maharashtra, India
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-3 border-slate-700 text-slate-300 hover:bg-white hover:text-slate-900 transition-colors bg-transparent h-8"
-                        onClick={() => window.open('https://www.google.com/maps/dir//Sohrab+Hall,+Tadiwala+Rd,+Sangamvadi,+Pune,+Maharashtra+411001', '_blank')}
-                      >
-                        <MapPin className="h-3.5 w-3.5 mr-2" />
-                        Get Directions
-                      </Button>
-                    </div>
-                  </div>
+                  ))}
 
                   <div className="flex items-start gap-4">
                     <div className="h-10 w-10 rounded-full bg-slate-800 flex items-center justify-center flex-shrink-0">

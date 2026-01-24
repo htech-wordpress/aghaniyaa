@@ -9,21 +9,33 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+// Imports added at the top
+import { subscribeToStats, type CompanyStats, defaultStats } from '@/lib/stats';
+import { useEffect } from 'react';
+
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [stats, setStats] = useState<CompanyStats>(defaultStats);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToStats(setStats);
+    return () => unsubscribe();
+  }, []);
+
+  const featuredLoans = stats.loanProducts?.filter(p => p.featured) || [];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
+    <header className="fixed top-0 z-50 w-full border-b bg-white shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex h-16 md:h-20 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 md:gap-3">
             <img
               src="/Aghaniya logo.svg"
-              alt="AGHANIYA ENTERPRISES Logo"
+              alt="Aghaniya Enterprises LLP Logo"
               className="h-10 md:h-16 w-auto object-contain rounded-full shadow-lg"
             />
             <div className="flex flex-col">
-              <span className="text-lg md:text-xl lg:text-2xl font-bold text-primary leading-tight tracking-tight">AGHANIYA ENTERPRISES</span>
+              <span className="text-lg md:text-xl lg:text-2xl font-bold text-primary leading-tight tracking-tight">Aghaniya Enterprises LLP</span>
               <span className="text-[9px] md:text-xs font-medium text-green-500 tracking-wider italic">Har Deal, Secure & Simple</span>
             </div>
           </Link>
@@ -39,26 +51,16 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="start">
                 <DropdownMenuItem asChild>
-                  <Link to="/loans" className="w-full cursor-pointer">All Loans</Link>
+                  <Link to="/loans" className="w-full cursor-pointer font-semibold">View All Loans</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/loans/personal-loan" className="w-full cursor-pointer">Personal Loan</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/loans/education-loan" className="w-full cursor-pointer">Education Loan</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/loans/auto-loan" className="w-full cursor-pointer">Auto Loan</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/loans/business-loan" className="w-full cursor-pointer">Business Loan</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/loans/home-loan" className="w-full cursor-pointer">Home Loan</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/loans/lap" className="w-full cursor-pointer">LAP</Link>
-                </DropdownMenuItem>
+                {featuredLoans.length > 0 && <div className="h-px bg-slate-100 my-1" />}
+                {featuredLoans.map((loan) => (
+                  <DropdownMenuItem key={loan.id} asChild>
+                    <Link to={loan.route || `/loans/${loan.id}`} className="w-full cursor-pointer">
+                      {loan.title}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
             {/* <Link to="/cibil-check" className="text-sm font-medium text-gray-900 hover:text-primary transition-colors">

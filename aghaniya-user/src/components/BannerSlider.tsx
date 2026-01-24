@@ -33,7 +33,7 @@ const banners = [
   },
   {
     id: 4,
-    title: 'We are Aghaniya Enterprises',
+    title: 'We are Aghaniya Enterprises LLP',
     subtitle: 'India’s Safe and Simplest Loan Distributor',
     cta: 'Contact Now',
     bgColor: 'bg-gradient-to-r from-blue-600 to-indigo-700',
@@ -42,7 +42,7 @@ const banners = [
   },
   {
     id: 5,
-    title: 'Join Aghaniya Enterprises as a Financial Advisor',
+    title: 'Join Aghaniya Enterprises LLP as a Financial Advisor',
     subtitle: 'Be a part of a large and growing family of 500+ partners.',
     cta: 'Join Now',
     bgColor: 'bg-gradient-to-r from-orange-500 to-red-600',
@@ -51,7 +51,7 @@ const banners = [
   },
   {
     id: 6,
-    title: 'Partner with Aghaniya Enterprises',
+    title: 'Partner with Aghaniya Enterprises LLP',
     subtitle: 'For the best deals and offers. Get closer to financial freedom.',
     cta: 'Partner With Us',
     bgColor: 'bg-gradient-to-r from-green-600 to-teal-600',

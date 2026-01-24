@@ -1,7 +1,16 @@
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin, Youtube } from 'lucide-react';
+import { subscribeToStats, type CompanyStats, defaultStats } from '@/lib/stats';
+import { useState, useEffect } from 'react';
 
 export function Footer() {
+  const [stats, setStats] = useState<CompanyStats>(defaultStats);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToStats(setStats);
+    return () => unsubscribe();
+  }, []);
+
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="container mx-auto px-4 py-12">
@@ -10,11 +19,11 @@ export function Footer() {
             <Link to="/" className="flex items-center gap-3 mb-4">
               <img
                 src="/Aghaniya logo.svg"
-                alt="AGHANIYA ENTERPRISES Logo"
+                alt="Aghaniya Enterprises LLP Logo"
                 className="h-12 w-auto object-contain rounded-full bg-white p-1"
               />
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-white leading-tight tracking-tight">AGHANIYA ENTERPRISES</span>
+                <span className="text-xl font-bold text-white leading-tight tracking-tight">Aghaniya Enterprises LLP</span>
                 <span className="text-[10px] font-medium text-green-500 tracking-wider italic">Har Deal, Secure & Simple</span>
               </div>
             </Link>
@@ -66,21 +75,18 @@ export function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Loans</h4>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link to="/loans/home-loan" className="hover:text-white transition-colors">Home Loan</Link>
-              </li>
-              <li>
-                <Link to="/loans/personal-loan" className="hover:text-white transition-colors">Personal Loan</Link>
-              </li>
-              <li>
-                <Link to="/loans/business-loan" className="hover:text-white transition-colors">Business Loan</Link>
-              </li>
-              <li>
-                <Link to="/loans/car-loan" className="hover:text-white transition-colors">Car Loan</Link>
-              </li>
-              <li>
-                <Link to="/loans/education-loan" className="hover:text-white transition-colors">Education Loan</Link>
-              </li>
+              {stats.loanProducts?.filter(p => p.featured).map((loan) => (
+                <li key={loan.id}>
+                  <Link to={loan.route || `/loans/${loan.id}`} className="hover:text-white transition-colors">
+                    {loan.title}
+                  </Link>
+                </li>
+              ))}
+              {(!stats.loanProducts || stats.loanProducts.filter(p => p.featured).length === 0) && (
+                <li>
+                  <Link to="/loans" className="hover:text-white transition-colors">View All Loans</Link>
+                </li>
+              )}
             </ul>
           </div>
 
@@ -99,14 +105,18 @@ export function Footer() {
                 <Mail className="h-4 w-4" />
                 <span>aghaniyaenterprises@gmail.com</span>
               </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 mt-1" />
-                <span>
-                  <p className="text-sm text-slate-400 leading-relaxed">
-                    Aghaniya Enterprises LLP, Sohrab Hall<br />
-                    2nd Floor, Near Pune Station<br />
-                    Pune - 411001, India</p></span>
-              </li>
+              {stats.addresses && stats.addresses.map((address) => (
+                <li key={address.id} className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
+                  <span>
+                    <p className="text-sm text-slate-400 leading-relaxed font-semibold text-slate-300 mb-0.5">{address.label}</p>
+                    <p className="text-sm text-slate-400 leading-relaxed">
+                      {address.value}
+                    </p>
+                    {address.phone && <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1"><Phone className="h-3 w-3" /> {address.phone}</p>}
+                  </span>
+                </li>
+              ))}
             </ul>
 
 
@@ -114,7 +124,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-          <p>&copy; 2025 AGHANIYA ENTERPRISES - All Rights Reserved</p>
+          <p>&copy; 2025 Aghaniya Enterprises LLP - All Rights Reserved</p>
         </div>
       </div>
     </footer>

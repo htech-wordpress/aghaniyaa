@@ -4,7 +4,7 @@ import { ExternalLink, Calendar } from 'lucide-react';
 
 const mediaArticles = [
     {
-        title: "Aghaniya Enterprises Expands Loan Distribution Network to 4000+ Cities",
+        title: "Aghaniya Enterprises LLP Expands Loan Distribution Network to 4000+ Cities",
         publication: "Financial Express",
         date: "Dec 15, 2024",
         image: "https://images.unsplash.com/photo-1579532551605-2b484501a1db?w=800&q=80",
@@ -16,7 +16,7 @@ const mediaArticles = [
         publication: "The Economic Times",
         date: "Nov 22, 2024",
         image: "https://images.unsplash.com/photo-1556740926-216503b4d45d?w=800&q=80",
-        excerpt: "An in-depth look at how companies like Aghaniya Enterprises are bridging the gap between borrowers and banks.",
+        excerpt: "An in-depth look at how companies like Aghaniya Enterprises LLP are bridging the gap between borrowers and banks.",
         link: "#"
     },
     {
@@ -24,7 +24,7 @@ const mediaArticles = [
         publication: "YourStory",
         date: "Oct 10, 2024",
         image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&q=80",
-        excerpt: "Aghaniya Enterprises featured among the top innovative financial services companies revolutionizing credit access.",
+        excerpt: "Aghaniya Enterprises LLP featured among the top innovative financial services companies revolutionizing credit access.",
         link: "#"
     }
 ];

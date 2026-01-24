@@ -1,16 +1,28 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollAnimation } from '@/components/ScrollAnimation';
+import { subscribeToStats, type CompanyStats, defaultStats } from '@/lib/stats';
+import { useState, useEffect } from 'react';
 import { Card3D } from '@/components/Card3D';
 import { Building2, Users, MapPin, TrendingUp } from 'lucide-react';
 
-const stats = [
-  { icon: Building2, value: '10+', label: 'Years of Experience', color: 'text-blue-600' },
-  { icon: Users, value: '10+', label: 'Financial Institution Partners', color: 'text-green-600' },
-  { icon: MapPin, value: '10+', label: 'Cities Through A Wide Branch Network', color: 'text-purple-600' },
-  { icon: TrendingUp, value: '₹100 Cr+', label: 'In Loans Disbursed', color: 'text-red-600' },
-];
+// Removed static stats array
+
 
 export function About() {
+  const [liveStats, setLiveStats] = useState<CompanyStats>(defaultStats);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToStats(setLiveStats);
+    return () => unsubscribe();
+  }, []);
+
+  const statsDisplay = [
+    { icon: Building2, value: liveStats.experience, label: 'Years of Experience', color: 'text-blue-600' },
+    { icon: Users, value: liveStats.partners, label: 'Financial Institution Partners', color: 'text-green-600' },
+    { icon: MapPin, value: liveStats.cities, label: 'Cities Through A Wide Branch Network', color: 'text-purple-600' },
+    { icon: TrendingUp, value: liveStats.loansDisbursed, label: 'In Loans Disbursed', color: 'text-red-600' },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="bg-hero-gradient py-12 md:py-20">
@@ -27,7 +39,7 @@ export function About() {
       <div className="container mx-auto px-4 -mt-16 pb-20 relative z-10">
         {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-12 md:mb-20">
-          {stats.map((stat, index) => {
+          {statsDisplay.map((stat, index) => {
             const Icon = stat.icon;
             return (
               <ScrollAnimation key={index} direction="up" delay={index * 0.15} duration={0.6}>
@@ -58,8 +70,8 @@ export function About() {
               </div>
               <div className="space-y-6 text-slate-600 text-lg leading-relaxed">
                 <p>
-                  At <span className="font-semibold text-slate-800">AGHANIYA ENTERPRISES</span>, we are committed to helping clients reach their financial objectives with tailored solutions.
-                  With a PAN India presence in over <span className="font-semibold text-slate-800">10+ cities</span>, we stand as one of the nation's leading credit lending establishments.
+                  At <span className="font-semibold text-slate-800">Aghaniya Enterprises LLP</span>, we are committed to helping clients reach their financial objectives with tailored solutions.
+                  With a PAN India presence in over <span className="font-semibold text-slate-800">{liveStats.cities} cities</span>, we stand as one of the nation's leading credit lending establishments.
                 </p>
                 <p>
                   Founded by financial professionals with over <span className="font-semibold text-slate-800">10+ years of experience</span>, we've proudly served over 1 million clients,
@@ -106,14 +118,14 @@ export function About() {
           <ScrollAnimation direction="scale" delay={0.5}>
             <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-slate-100">
               <div className="text-center mb-10">
-                <h2 className="text-3xl font-bold text-slate-800 mb-2">Why Choose AGHANIYA ENTERPRISES?</h2>
+                <h2 className="text-3xl font-bold text-slate-800 mb-2">Why Choose Aghaniya Enterprises LLP?</h2>
                 <p className="text-slate-500">The advantages that set us apart</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 {[
-                  "10+ years of industry experience",
-                  "Partnerships with 10+ financial institutions",
-                  "PAN India presence in 10+ cities",
+                  `${liveStats.experience} years of industry experience`,
+                  `Partnerships with ${liveStats.partners} financial institutions`,
+                  `PAN India presence in ${liveStats.cities} cities`,
                   "Competitive interest rates and flexible terms",
                   "Quick loan processing and approval",
                   "Dedicated customer support",

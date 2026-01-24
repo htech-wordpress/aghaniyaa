@@ -15,6 +15,8 @@ import { AdminImportLeads } from '@/pages/AdminImportLeads';
 import { AdminSuperAdminSettings } from '@/pages/AdminSuperAdminSettings';
 import { AdminAgents } from '@/pages/AdminAgents';
 import { AdminBranches } from '@/pages/AdminBranches';
+import { AdminStats } from '@/pages/AdminStats';
+import { AdminLoans } from '@/pages/AdminLoans';
 import { AgentSelfLeads } from '@/pages/AgentSelfLeads';
 import { AgentContactManager } from '@/pages/AgentContactManager';
 import { AgentUserProfile } from '@/pages/AgentUserProfile';
@@ -73,6 +75,8 @@ function App() {
               <Route path="/agents" element={<ProtectedRoute requiredModule="agents"><AdminAgents /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute requiredModule="users"><AdminUsers /></ProtectedRoute>} />
               <Route path="/branches" element={<ProtectedRoute requiredModule="branches"><AdminBranches /></ProtectedRoute>} />
+              <Route path="/site-stats" element={<ProtectedRoute requiredModule="superadmin"><AdminStats /></ProtectedRoute>} />
+              <Route path="/loans" element={<ProtectedRoute requiredModule="superadmin"><AdminLoans /></ProtectedRoute>} />
               <Route path="/superadmin" element={<ProtectedRoute requiredModule="superadmin"><AdminSuperAdminSettings /></ProtectedRoute>} />
               <Route path="/export" element={<ProtectedRoute requiredModule="leads_website"><AdminExportLeads /></ProtectedRoute>} />
               <Route path="/import" element={<ProtectedRoute requiredModule="leads_website"><AdminImportLeads /></ProtectedRoute>} />

@@ -37,7 +37,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
   return (
     <div className="container mx-auto py-2">
       {/* App Header */}
-      <header className="flex items-center justify-between mb-2 border-b border-gray-200 pb-2">
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 flex items-center justify-between mb-2 border-b border-gray-200 py-2">
         <a href={companySettings.website || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           {companySettings.companyLogo ? (
             <img src={companySettings.companyLogo} alt="Logo" className="h-10 w-auto object-contain" />
@@ -89,6 +89,14 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
                     <Button variant={isActive('/agents') ? 'default' : 'ghost'} className="w-full justify-start py-3 px-3" onClick={() => navigate('/agents')}>
                       <Users className="h-5 w-5 text-gray-700 mr-3" />
                       <span className="text-sm text-gray-800">Agents</span>
+                    </Button>
+                    <Button variant={isActive('/site-stats') ? 'default' : 'ghost'} className="w-full justify-start py-3 px-3" onClick={() => navigate('/site-stats')}>
+                      <Zap className="h-5 w-5 text-gray-700 mr-3" />
+                      <span className="text-sm text-gray-800">Site Statistics</span>
+                    </Button>
+                    <Button variant={isActive('/loans') ? 'default' : 'ghost'} className="w-full justify-start py-3 px-3" onClick={() => navigate('/loans')}>
+                      <Briefcase className="h-5 w-5 text-gray-700 mr-3" />
+                      <span className="text-sm text-gray-800">Loan Products</span>
                     </Button>
                   </>
                 ) : isAgentRole ? (

@@ -22,7 +22,7 @@ export const testimonials: Testimonial[] = [
         name: "Priya Sharma",
         role: "Software Engineer",
         rating: 5,
-        text: "Getting a home loan was always a daunting task for me, but AGHANIYA ENTERPRISES made it simple. The team guided me through every step.",
+        text: "Getting a home loan was always a daunting task for me, but Aghaniya Enterprises LLP made it simple. The team guided me through every step.",
         avatar: "/assets/avatar-2.png"
     },
     {
@@ -38,7 +38,7 @@ export const testimonials: Testimonial[] = [
         name: "Sneha Patel",
         role: "Doctor",
         rating: 5,
-        text: "The team at AGHANIYA ENTERPRISES is very professional. They helped me compare multiple offers and choose the best one for my car loan.",
+        text: "The team at Aghaniya Enterprises LLP is very professional. They helped me compare multiple offers and choose the best one for my car loan.",
         avatar: "/assets/avatar-4.png"
     },
     {

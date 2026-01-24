@@ -60,7 +60,7 @@ export function Careers() {
         source: 'careers-page',
       });
       alert(
-        'Thank you for your interest in building your career with AGHANIYA ENTERPRISES. Our HR team will contact you soon.'
+        'Thank you for your interest in building your career with Aghaniya Enterprises LLP. Our HR team will contact you soon.'
       );
       setFormData({
         fullName: '',
@@ -87,7 +87,7 @@ export function Careers() {
       <div className="bg-hero-gradient py-12 md:py-20">
         <div className="container mx-auto px-4 text-center">
           <ScrollAnimation direction="fade" delay={0.2}>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Careers at AGHANIYA ENTERPRISES</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Careers at Aghaniya Enterprises LLP</h1>
             <p className="text-xl text-slate-300 max-w-3xl mx-auto mb-4">
               Join India's leading loan distribution company and build a long-term career in financial services.
             </p>
@@ -152,17 +152,17 @@ export function Careers() {
           <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-slate-100 mb-16">
             <div className="flex items-center mb-6">
               <div className="h-10 w-1 bg-primary rounded-full mr-4" />
-              <h2 className="text-3xl font-bold text-slate-800">Build Your Career with AGHANIYA ENTERPRISES</h2>
+              <h2 className="text-3xl font-bold text-slate-800">Build Your Career with Aghaniya Enterprises LLP</h2>
             </div>
 
             <div className="space-y-6 text-slate-600 text-lg leading-relaxed">
               <p>
-                AGHANIYA ENTERPRISES works with leading banks, NBFCs, and financial institutions across India. Our
+                Aghaniya Enterprises LLP works with leading banks, NBFCs, and financial institutions across India. Our
                 distribution network helps customers choose the right loan and credit products with complete
                 transparency and guidance.
               </p>
               <p>
-                As part of AGHANIYA ENTERPRISES, you get exposure to multiple products such as Home Loans, Personal Loans,
+                As part of Aghaniya Enterprises LLP, you get exposure to multiple products such as Home Loans, Personal Loans,
                 Business Loans, Credit Cards, Loan Against Property, Car Loans, and more. We provide structured
                 training, product knowledge, and on-field support.
               </p>
