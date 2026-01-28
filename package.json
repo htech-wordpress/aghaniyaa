@@ -3,12 +3,12 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "build": "npm --prefix aghaniya-user run build && npm --prefix aghaniya-admin run build",
-    "build:user": "npm --prefix aghaniya-user run build",
-    "build:admin": "npm --prefix aghaniya-admin run build",
-    "deploy:user": "firebase deploy --project aghaniya --only hosting:aghaniyaenterprises",
-    "deploy:admin": "firebase deploy --project aghaniya --only hosting:aghaniya",
-    "deploy:all": "firebase deploy --project aghaniya --only hosting"
+    "build:dev": "npm --prefix aghaniya-user run build:dev && npm --prefix aghaniya-admin run build:dev",
+    "build:prod": "npm --prefix aghaniya-user run build:prod && npm --prefix aghaniya-admin run build:prod",
+    "deploy:dev": "firebase deploy --project aghaniya",
+    "deploy:prod": "firebase deploy --project aghaniya-enterprises-llp",
+    "deploy:rules:dev": "firebase deploy --project aghaniya --only database,firestore",
+    "deploy:rules:prod": "firebase deploy --project aghaniya-enterprises-llp --only database,firestore"
   },
   "devDependencies": {
     "firebase-admin": "^13.6.0"

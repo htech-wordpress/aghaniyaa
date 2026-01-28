@@ -1,15 +1,15 @@
 {
   "projects": {
-    "default": "aghaniya"
+    "default": "aghaniya-enterprises-llp"
   },
   "targets": {
-    "aghaniya": {
+    "aghaniya-enterprises-llp": {
       "hosting": {
-        "aghaniyaenterprises": [
-          "aghaniyaenterprises"
+        "aghaniya-enterprises-llp": [
+          "aghaniya-enterprises-llp"
         ],
-        "aghaniya": [
-          "aghaniya"
+        "aghaniya-enterprises-llp-admin": [
+          "aghaniya-enterprises-llp-admin"
         ]
       }
     }

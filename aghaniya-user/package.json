@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "postbuild": "node scripts/generate-404.js && node scripts/fix-assets-case.cjs",
+    "build:dev": "tsc -b && vite build --mode development",
+    "build:prod": "tsc -b && vite build --mode production",
+    "postbuild": "node scripts/generate-404.js && node scripts/fix-assets-case.cjs && node scripts/generate-sitemap.cjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

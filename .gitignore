@@ -25,5 +25,14 @@ dist-ssr
 
 # Service account credentials (do not commit)
 serviceAccountKey.json
-serviceAccountKey.*
+serviceAccountKey.*.json
+aghaniya-enterprises-llp-firebase-adminsdk-*.json
+*.json
+!package.json
+!package-lock.json
+!firebase.json
+!.firebaserc
+!tsconfig*.json
+!firestore.indexes.json
+!database.rules.json
 

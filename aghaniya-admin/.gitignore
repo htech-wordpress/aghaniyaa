@@ -23,7 +23,15 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment variables
-.env
-.env.local
-.env.production
+# Service account credentials (do not commit)
+serviceAccountKey.json
+serviceAccountKey.*.json
+aghaniya-enterprises-llp-firebase-adminsdk-*.json
+*.json
+!package.json
+!package-lock.json
+!firebase.json
+!.firebaserc
+!tsconfig*.json
+!firestore.indexes.json
+!database.rules.json

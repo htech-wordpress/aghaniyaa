@@ -1,5 +1,5 @@
 {
-  "project": "aghaniya",
+  "project": "aghaniya-enterprises-llp",
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
@@ -9,7 +9,7 @@
   },
   "hosting": [
     {
-      "target": "aghaniyaenterprises",
+      "target": "aghaniya-enterprises-llp",
       "public": "aghaniya-user/dist",
       "ignore": [
         "firebase.json",
@@ -47,7 +47,7 @@
       ]
     },
     {
-      "target": "aghaniya",
+      "target": "aghaniya-enterprises-llp-admin",
       "public": "aghaniya-admin/dist",
       "ignore": [
         "firebase.json",
