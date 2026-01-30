@@ -66,9 +66,6 @@ export function Footer() {
               <li>
                 <Link to="/loans" className="hover:text-white transition-colors">Loans</Link>
               </li>
-              {/* <li>
-                <Link to="/credit-cards" className="hover:text-white transition-colors">Credit Cards</Link>
-              </li> */}
             </ul>
           </div>
 
