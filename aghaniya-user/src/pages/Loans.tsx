@@ -7,6 +7,8 @@ import { loanOptions } from '@/data/loanOptions';
 import { subscribeToStats, type CompanyStats, defaultStats } from '@/lib/stats';
 import { useState, useEffect } from 'react';
 import * as LucideIcons from 'lucide-react';
+import { SEO } from '@/components/SEO';
+
 const DynamicIcon = ({ name, className }: { name: string, className?: string }) => {
   const Icon = (LucideIcons as any)[name] || LucideIcons.Briefcase;
   return <Icon className={className} />;
@@ -35,6 +37,11 @@ export function Loans() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <SEO
+        title="Our Loan Products"
+        description="Explore a wide range of loan products from Aghaniya Enterprises LLP, including Personal, Home, Business, and Education loans with competitive interest rates."
+        keywords="loan products, personal loan, home loan, business loan, education loan, financial services India"
+      />
       <div className="bg-hero-gradient py-20">
         <div className="container mx-auto px-4 text-center">
           <ScrollAnimation direction="fade" delay={0.2}>

@@ -4,6 +4,7 @@ import { subscribeToStats, type CompanyStats, defaultStats } from '@/lib/stats';
 import { useState, useEffect } from 'react';
 import { Card3D } from '@/components/Card3D';
 import { Building2, Users, MapPin, TrendingUp } from 'lucide-react';
+import { SEO } from '@/components/SEO';
 
 // Removed static stats array
 
@@ -25,6 +26,11 @@ export function About() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <SEO
+        title="About Us"
+        description="Learn more about Aghaniya Enterprises LLP, India's leading loan distribution company. Our mission, vision, and core values in serving financial needs across India."
+        keywords="about aghaniya enterprises, loan distribution company, financial mission, Jibu George, Rakesh Nair"
+      />
       <div className="bg-hero-gradient py-12 md:py-20">
         <div className="container mx-auto px-4 text-center">
           <ScrollAnimation direction="fade" delay={0.2}>

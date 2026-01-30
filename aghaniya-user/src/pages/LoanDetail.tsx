@@ -4,6 +4,7 @@ import { type LeadCategory } from '@/lib/storage';
 import { loanOptions } from '@/data/loanOptions';
 import { subscribeToStats, type CompanyStats, defaultStats } from '@/lib/stats';
 import { useState, useEffect } from 'react';
+import { SEO } from '@/components/SEO';
 
 export function LoanDetail() {
   const { loanType } = useParams<{ loanType: string }>();
@@ -57,15 +58,22 @@ export function LoanDetail() {
   if (!loan) return null;
 
   return (
-    <LoanForm
-      loanType={loan.title}
-      description={loan.description}
-      category={loanType as LeadCategory}
-      initialMobile={initialMobile}
-      features={loan.features}
-      eligibility={loan.eligibility}
-      documents={loan.documents}
-    />
+    <>
+      <SEO
+        title={loan.title}
+        description={loan.description}
+        keywords={`${loan.title}, loan eligibility, loan documents, Aghaniya Enterprises LLP`}
+      />
+      <LoanForm
+        loanType={loan.title}
+        description={loan.description}
+        category={loanType as LeadCategory}
+        initialMobile={initialMobile}
+        features={loan.features}
+        eligibility={loan.eligibility}
+        documents={loan.documents}
+      />
+    </>
   );
 }
 

@@ -33,19 +33,19 @@ export function Footer() {
 
             <h4 className="text-white font-semibold mb-4">Connect With Us</h4>
             <div className="flex space-x-4">
-              <a href="#" className="bg-slate-800 p-2 rounded-full hover:bg-primary hover:text-white transition-colors text-slate-400">
+              <a href="https://www.facebook.com/aghaniyaenterprises" target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-primary hover:text-white transition-colors text-slate-400">
                 <Facebook className="h-4 w-4" />
               </a>
-              <a href="#" className="bg-slate-800 p-2 rounded-full hover:bg-primary hover:text-white transition-colors text-slate-400">
+              <a href="https://twitter.com/aghaniya" target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-primary hover:text-white transition-colors text-slate-400">
                 <Twitter className="h-4 w-4" />
               </a>
-              <a href="#" className="bg-slate-800 p-2 rounded-full hover:bg-primary hover:text-white transition-colors text-slate-400">
+              <a href="https://www.instagram.com/aghaniyaenterprises" target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-primary hover:text-white transition-colors text-slate-400">
                 <Instagram className="h-4 w-4" />
               </a>
-              <a href="#" className="bg-slate-800 p-2 rounded-full hover:bg-primary hover:text-white transition-colors text-slate-400">
+              <a href="https://www.linkedin.com/company/aghaniya-enterprises-llp" target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-primary hover:text-white transition-colors text-slate-400">
                 <Linkedin className="h-4 w-4" />
               </a>
-              <a href="#" className="bg-slate-800 p-2 rounded-full hover:bg-primary hover:text-white transition-colors text-slate-400">
+              <a href="https://youtube.com/@aghaniya" target="_blank" rel="noopener noreferrer" className="bg-slate-800 p-2 rounded-full hover:bg-primary hover:text-white transition-colors text-slate-400">
                 <Youtube className="h-4 w-4" />
               </a>
             </div>

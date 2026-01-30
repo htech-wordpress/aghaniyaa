@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollAnimation } from '@/components/ScrollAnimation';
 import { Phone, Mail, MapPin, Clock, Facebook, Twitter, Instagram, Linkedin, Youtube, Building } from 'lucide-react';
+import { SEO } from '@/components/SEO';
 import { saveLeadAsync } from '@/lib/leads';
 import { subscribeToBranches, type Branch } from '@/lib/branches';
 import { subscribeToStats, type CompanyStats, defaultStats } from '@/lib/stats';
@@ -90,6 +91,11 @@ export function Contact() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <SEO
+        title="Contact Us"
+        description="Get in touch with Aghaniya Enterprises LLP for loan inquiries, customer support, or partnership opportunities. Our team is available to assist you across India."
+        keywords="contact aghaniya enterprises, loan inquiry, customer support, office address Pune"
+      />
       <div className="bg-hero-gradient py-12 md:py-20">
         <div className="container mx-auto px-4 text-center">
           <ScrollAnimation direction="fade" delay={0.2}>
