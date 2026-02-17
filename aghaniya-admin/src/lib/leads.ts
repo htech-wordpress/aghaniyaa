@@ -32,7 +32,6 @@ export async function saveLeadAsync(category: LeadCategory, data: Record<string,
   const timestamp = new Date().toISOString();
   // Ensure timestamp is in data too as we might order by it inside data or root
   const payload = { category, data, timestamp };
-  console.log('Saving lead to Realtime DB:', payload);
 
   const leadsRef = ref(db, 'leads');
   const newLeadRef = push(leadsRef);

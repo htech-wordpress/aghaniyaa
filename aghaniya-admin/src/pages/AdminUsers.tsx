@@ -96,23 +96,13 @@ export function AdminUsers() {
     try {
       const adminsRef = ref(db, 'adminUsers');
       const snapshot = await get(adminsRef);
-      console.log('AdminUsers snapshot exists:', snapshot.exists());
-
-      // Debug: Check if data exists in 'admins' instead
-      const legacySnap = await get(ref(db, 'admins'));
-      console.log('Legacy "admins" path exists:', legacySnap.exists());
-      if (legacySnap.exists()) console.log('Legacy "admins" val:', legacySnap.val());
-
-      console.log('Connected to DB:', db.app.options.databaseURL);
 
       const adminsList: AdminUser[] = [];
 
       snapshot.forEach((childSnap) => {
         const val = childSnap.val();
-        console.log('Fetched admin user:', childSnap.key, val);
         adminsList.push({ id: childSnap.key!, ...val } as AdminUser);
       });
-      console.log('Total admins found:', adminsList.length);
 
       // Sort by createdAt desc if possible, otherwise by key/creation order?
       // Assuming createdAt exists

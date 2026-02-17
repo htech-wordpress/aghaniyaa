@@ -117,7 +117,6 @@ export function AgentProvider({ children }: { children: ReactNode }) {
                 setAccessibleModules(['*']); // All access
             } else if (agentInLoop?.role === 'admin' && agentInLoop?.modules) {
                 setAccessibleModules(agentInLoop.modules);
-                console.log('AgentContext: Assigned modules for', user.email, agentInLoop.modules);
             } else if (agentInLoop?.role === 'manager') {
                 // Default manager modules
                 setAccessibleModules(['dashboard', 'team_dashboard', 'leads_manual', 'leads_website', 'leads_contacts', 'leads_careers', 'agents']);
@@ -154,7 +153,6 @@ export function AgentProvider({ children }: { children: ReactNode }) {
                     setAccessibleModules(['*']); // All access
                 } else if (agentInLoop?.role === 'admin' && agentInLoop?.modules) {
                     setAccessibleModules(agentInLoop.modules);
-                    console.log('AgentContext (Effect): Assigned modules for', user.email, agentInLoop.modules);
                 } else if (agentInLoop?.role === 'manager') {
                     setAccessibleModules(['dashboard', 'team_dashboard', 'leads_manual', 'leads_website', 'leads_contacts', 'leads_careers', 'agents']);
                 } else if (agentInLoop?.role === 'agent') {

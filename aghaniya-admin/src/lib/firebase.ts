@@ -131,15 +131,11 @@ export async function isSuperUser(user: User | null): Promise<boolean> {
   if (!user) return false;
   if (!database) return false;
   try {
-    console.log('Checking isSuperUser for:', user.email);
     const snap = await get(child(ref(database), 'adminConfig/superusers'));
-    console.log('isSuperUser snap exists:', snap.exists());
     if (!snap.exists()) return false;
     const data = snap.val();
-    console.log('isSuperUser data:', data);
     const emails: string[] = data?.emails || [];
     const isMatch = Boolean(user.email && emails.includes(user.email));
-    console.log('isSuperUser match:', isMatch);
     return isMatch;
   } catch (e) {
     console.error('isSuperUser error', e);
@@ -209,7 +205,6 @@ export async function getAdminList(): Promise<Array<{ id: string; data: any }>> 
     // Convert object { uuid: {data}, uuid2: {data} } to array matches Firestore structure
     return Object.entries(data).map(([id, val]) => ({ id, data: val }));
   } catch (e: any) {
-    console.debug('getAdminList permission denied or empty');
     return [];
   }
 }

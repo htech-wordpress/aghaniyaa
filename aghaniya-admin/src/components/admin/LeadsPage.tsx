@@ -312,10 +312,8 @@ export function LeadsPage({ category, title }: Props) {
       pipeline: [{ status: 'New', date: new Date().toISOString(), comment: 'Lead created manually', updatedBy: currentUser }],
     };
 
-    console.log('Attempting to save manual lead:', { category, data });
     try {
-      const result = await saveLeadAsync(category, data);
-      console.log('Lead saved successfully:', result);
+      await saveLeadAsync(category, data);
       setShowAddDialog(false);
       alert('Lead added successfully');
     } catch (e: any) {

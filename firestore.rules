@@ -61,6 +61,8 @@ service cloud.firestore {
     }
 
     // --- Leads collection (public form submissions) ---
+    // NOTE: The current frontend uses Firebase Realtime Database for leads.
+    // These Firestore rules are kept for compatibility or future migration.
     // We allow unauthenticated clients to create leads, but we validate the payload
     match /leads/{leadId} {
       allow read: if request.auth != null;
